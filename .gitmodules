@@ -43,3 +43,84 @@
 [submodule "tools/ioc-enrichment/as-ip-blocks"]
 	path = tools/ioc-enrichment/as-ip-blocks
 	url = https://github.com/ipverse/as-ip-blocks
+[submodule "tools/attribution/caldera"]
+	path = tools/attribution/caldera
+	url = https://github.com/mitre/caldera
+[submodule "tools/attribution/atomic-red-team"]
+	path = tools/attribution/atomic-red-team
+	url = https://github.com/redcanaryco/atomic-red-team
+[submodule "tools/attribution/bloodhound"]
+	path = tools/attribution/bloodhound
+	url = https://github.com/BloodHoundAD/BloodHound
+[submodule "tools/malware-analysis/volatility3"]
+	path = tools/malware-analysis/volatility3
+	url = https://github.com/volatilityfoundation/volatility3
+[submodule "tools/malware-analysis/capa"]
+	path = tools/malware-analysis/capa
+	url = https://github.com/mandiant/capa
+[submodule "tools/malware-analysis/radare2"]
+	path = tools/malware-analysis/radare2
+	url = https://github.com/radareorg/radare2
+[submodule "tools/offensive/netexec"]
+	path = tools/offensive/netexec
+	url = https://github.com/Pennyw0rth/NetExec
+[submodule "tools/offensive/impacket"]
+	path = tools/offensive/impacket
+	url = https://github.com/fortra/impacket
+[submodule "tools/offensive/responder"]
+	path = tools/offensive/responder
+	url = https://github.com/lgandx/Responder
+[submodule "tools/offensive/kerbrute"]
+	path = tools/offensive/kerbrute
+	url = https://github.com/ropnop/kerbrute
+[submodule "tools/offensive/nuclei"]
+	path = tools/offensive/nuclei
+	url = https://github.com/projectdiscovery/nuclei
+[submodule "tools/offensive/ffuf"]
+	path = tools/offensive/ffuf
+	url = https://github.com/ffuf/ffuf
+[submodule "tools/offensive/feroxbuster"]
+	path = tools/offensive/feroxbuster
+	url = https://github.com/epi052/feroxbuster
+[submodule "tools/offensive/katana"]
+	path = tools/offensive/katana
+	url = https://github.com/projectdiscovery/katana
+[submodule "tools/offensive/gophish"]
+	path = tools/offensive/gophish
+	url = https://github.com/gophish/gophish
+[submodule "tools/offensive/evilginx2"]
+	path = tools/offensive/evilginx2
+	url = https://github.com/kgretzky/evilginx2
+[submodule "tools/offensive/havoc"]
+	path = tools/offensive/havoc
+	url = https://github.com/HavocFramework/Havoc
+[submodule "tools/offensive/sliver"]
+	path = tools/offensive/sliver
+	url = https://github.com/BishopFox/sliver
+[submodule "tools/attribution/apex-hunter"]
+	path = tools/attribution/apex-hunter
+	url = https://github.com/bogdanticu88/ApexHunter
+[submodule "tools/malware-analysis/scarabeo"]
+	path = tools/malware-analysis/scarabeo
+	url = https://github.com/bogdanticu88/SCARABEO
+[submodule "tools/attribution/eris-intelligence"]
+	path = tools/attribution/eris-intelligence
+	url = https://github.com/bogdanticu88/ERIS_intelligence
+[submodule "tools/attribution/threatmap"]
+	path = tools/attribution/threatmap
+	url = https://github.com/bogdanticu88/threatmap
+[submodule "tools/offensive/authbridge"]
+	path = tools/offensive/authbridge
+	url = https://github.com/bogdanticu88/AuthBridge
+[submodule "tools/offensive/reqreaper"]
+	path = tools/offensive/reqreaper
+	url = https://github.com/bogdanticu88/ReqReaper
+[submodule "tools/offensive/ratrace"]
+	path = tools/offensive/ratrace
+	url = https://github.com/bogdanticu88/RatRace
+[submodule "tools/offensive/omnifuzz-llm"]
+	path = tools/offensive/omnifuzz-llm
+	url = https://github.com/bogdanticu88/OmniFuzz-LLM
+[submodule "tools/network/roguedetect"]
+	path = tools/network/roguedetect
+	url = https://github.com/bogdanticu88/RogueDetect
