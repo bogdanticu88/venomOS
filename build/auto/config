@@ -14,8 +14,6 @@ lb config noauto \
     --iso-application "VenomOS" \
     --iso-publisher "VenomOS Project" \
     --iso-volume "VENOMOS" \
-    --hostname "venomOS" \
-    --username "venom" \
     --security true \
     --updates true \
     "${@}"

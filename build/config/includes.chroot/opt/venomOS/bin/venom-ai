@@ -1,0 +1,42 @@
+#!/bin/bash
+# venom-ai — local AI analyst powered by Ollama
+MODEL="${VENOM_MODEL:-mistral}"
+PROMPTS="/opt/venomOS/ai/prompts"
+
+usage() {
+    echo "Usage: venom-ai <command> [input]"
+    echo ""
+    echo "  ioc <indicator>    Enrich an IOC (IP, domain, hash, URL)"
+    echo "  apt <ttps>         APT attribution analysis"
+    echo "  osint <subject>    OSINT correlation"
+    echo "  <free text>        General analyst query"
+    echo ""
+    echo "Model: $MODEL  (override: export VENOM_MODEL=llama3)"
+}
+
+if [ $# -eq 0 ]; then usage; exit 0; fi
+
+if ! command -v ollama &>/dev/null; then
+    echo "[-] Ollama not installed. Run: curl -fsSL https://ollama.com/install.sh | sh"
+    exit 1
+fi
+
+case "$1" in
+    ioc)
+        shift; INPUT="$*"
+        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/ioc-enrichment.md" 2>/dev/null | grep -v '```')
+        echo "${TEMPLATE/\{indicator\}/$INPUT}" | ollama run "$MODEL"
+        ;;
+    apt)
+        shift; INPUT="$*"
+        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/apt-attribution.md" 2>/dev/null | grep -v '```')
+        echo "${TEMPLATE/\{input\}/$INPUT}" | ollama run "$MODEL"
+        ;;
+    osint)
+        shift; INPUT="$*"
+        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/osint-correlation.md" 2>/dev/null | grep -v '```')
+        echo "${TEMPLATE/\{subject\}/$INPUT}" | ollama run "$MODEL"
+        ;;
+    help|--help|-h) usage ;;
+    *) echo "$*" | ollama run "$MODEL" ;;
+esac

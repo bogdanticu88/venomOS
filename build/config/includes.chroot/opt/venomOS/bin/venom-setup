@@ -1,0 +1,224 @@
+#!/bin/bash
+# VenomOS first-boot tool installer
+# Clones all tools from GitHub into /opt/venomOS/tools/
+
+set -e
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+TOOLS_BASE="/opt/venomOS/tools"
+BIN_DIR="/opt/venomOS/bin"
+SETUP_FLAG="/opt/venomOS/.setup-complete"
+LOG="/opt/venomOS/setup.log"
+
+# Must run as root
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}[-] Run as root: sudo venom-setup${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${GREEN} __   _____ _  _  ___  __  __  ___  ___ ${NC}"
+echo -e "${GREEN} \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|${NC}"
+echo -e "${GREEN}  \ V /| _|| .\` | (_) | |\/| | (_) \__ \\${NC}"
+echo -e "${GREEN}   \_/ |___|_|\_|\___/|_|  |_|\___/|___/${NC}"
+echo ""
+echo -e "${BOLD}  VenomOS Tool Setup${NC}"
+echo -e "  Installs 40+ OSINT, intelligence, and offensive tools"
+echo -e "  Estimated time: 10-20 minutes (depends on connection)"
+echo ""
+
+# Check internet
+if ! curl -s --max-time 5 https://github.com >/dev/null 2>&1; then
+    echo -e "${RED}[-] No internet connection. Connect and retry.${NC}"
+    exit 1
+fi
+
+clone_tool() {
+    local category="$1"
+    local name="$2"
+    local repo="$3"
+    local dest="$TOOLS_BASE/$category/$name"
+
+    if [ -d "$dest/.git" ]; then
+        echo -e "  ${YELLOW}[skip]${NC} $name (already installed)"
+        return 0
+    fi
+
+    printf "  ${CYAN}[*]${NC} %-35s" "$name"
+    if git clone --depth=1 --quiet "https://github.com/$repo" "$dest" >> "$LOG" 2>&1; then
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${RED}failed${NC}"
+    fi
+}
+
+install_python_tool() {
+    local tool_path="$1"
+    local name
+    name=$(basename "$tool_path")
+
+    if [ ! -d "$tool_path" ]; then return; fi
+    if [ -d "$tool_path/.venv" ]; then return; fi
+
+    printf "  ${CYAN}[*]${NC} %-35s" "$name (deps)"
+    if python3 -m venv "$tool_path/.venv" >> "$LOG" 2>&1 && \
+       "$tool_path/.venv/bin/pip" install --quiet -r "$tool_path/requirements.txt" >> "$LOG" 2>&1; then
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${YELLOW}partial${NC}"
+    fi
+}
+
+make_wrapper() {
+    local name="$1"
+    local tool_path="$2"
+    local entry="$3"
+    cat > "$BIN_DIR/$name" << WRAPPER
+#!/bin/bash
+cd "$tool_path"
+if [ -f ".venv/bin/python" ]; then
+    exec .venv/bin/python $entry "\$@"
+else
+    exec python3 $entry "\$@"
+fi
+WRAPPER
+    chmod +x "$BIN_DIR/$name"
+}
+
+download_binary() {
+    local name="$1"
+    local url="$2"
+    local type="${3:-zip}"
+    local bin="${4:-$name}"
+    local tmp
+    tmp=$(mktemp -d)
+
+    printf "  ${CYAN}[*]${NC} %-35s" "$name"
+    if curl -sL "$url" -o "$tmp/archive.$type" >> "$LOG" 2>&1; then
+        case "$type" in
+            zip)  unzip -q "$tmp/archive.zip" -d "$tmp" >> "$LOG" 2>&1 ;;
+            tar.gz) tar -xzf "$tmp/archive.tar.gz" -C "$tmp" >> "$LOG" 2>&1 ;;
+        esac
+        local found
+        found=$(find "$tmp" -name "$bin" -type f | head -1)
+        if [ -n "$found" ]; then
+            cp "$found" "$BIN_DIR/$name" && chmod +x "$BIN_DIR/$name"
+            echo -e "${GREEN}done${NC}"
+        else
+            echo -e "${YELLOW}binary not found${NC}"
+        fi
+    else
+        echo -e "${RED}download failed${NC}"
+    fi
+    rm -rf "$tmp"
+}
+
+# ── PHASE 1: Clone tools ────────────────────────────────────────────────────
+echo -e "\n${BOLD}[1/4] Cloning tools from GitHub...${NC}"
+
+echo -e "\n  ${CYAN}Recon${NC}"
+clone_tool recon theHarvester      laramies/theHarvester
+clone_tool recon recon-ng          lanmaster53/recon-ng
+clone_tool recon spiderfoot        smicallef/spiderfoot
+clone_tool recon shodanx           RevoltSecurities/ShodanX
+clone_tool recon sublist3r         aboul3la/Sublist3r
+clone_tool recon osint-master-tool aingram702/OSINT-Master-Tool
+clone_tool recon d4rk-intel        techenthusiast167/D4rk_Intel-OSINT-Investigative-Toolkit
+clone_tool recon osint-agentic-framework V1n1v131r4/OSINT-Agentic-Framework
+clone_tool recon sarenka            KTZgraph/sarenka
+
+echo -e "\n  ${CYAN}Username${NC}"
+clone_tool username sherlock       sherlock-project/sherlock
+clone_tool username snoop          snooppr/snoop
+clone_tool username whats-my-name  WebBreacher/WhatsMyName
+
+echo -e "\n  ${CYAN}IOC Enrichment${NC}"
+clone_tool ioc-enrichment nox-framework nox-project/nox-framework
+clone_tool ioc-enrichment as-ip-blocks  ipverse/as-ip-blocks
+
+echo -e "\n  ${CYAN}Attribution & Threat Intel${NC}"
+clone_tool attribution apex-hunter       bogdanticu88/ApexHunter
+clone_tool attribution eris-intelligence bogdanticu88/ERIS_intelligence
+clone_tool attribution threatmap         bogdanticu88/threatmap
+clone_tool attribution caldera           mitre/caldera
+clone_tool attribution atomic-red-team   redcanaryco/atomic-red-team
+clone_tool attribution bloodhound        BloodHoundAD/BloodHound
+
+echo -e "\n  ${CYAN}Malware Analysis${NC}"
+clone_tool malware-analysis volatility3 volatilityfoundation/volatility3
+clone_tool malware-analysis scarabeo    bogdanticu88/SCARABEO
+clone_tool malware-analysis capa        mandiant/capa
+
+echo -e "\n  ${CYAN}Network${NC}"
+clone_tool network roguedetect bogdanticu88/RogueDetect
+
+echo -e "\n  ${CYAN}Offensive${NC}"
+clone_tool offensive impacket     fortra/impacket
+clone_tool offensive netexec      Pennyw0rth/NetExec
+clone_tool offensive responder    lgandx/Responder
+clone_tool offensive authbridge   bogdanticu88/AuthBridge
+clone_tool offensive reqreaper    bogdanticu88/ReqReaper
+clone_tool offensive ratrace      bogdanticu88/RatRace
+clone_tool offensive omnifuzz-llm bogdanticu88/OmniFuzz-LLM
+clone_tool offensive gophish      gophish/gophish
+clone_tool offensive evilginx2    kgretzky/evilginx2
+clone_tool offensive havoc        HavocFramework/Havoc
+clone_tool offensive sliver       BishopFox/sliver
+
+# ── PHASE 2: Install Python deps ───────────────────────────────────────────
+echo -e "\n${BOLD}[2/4] Installing Python dependencies...${NC}"
+for tool in theHarvester recon-ng spiderfoot shodanx; do
+    install_python_tool "$TOOLS_BASE/recon/$tool"
+done
+install_python_tool "$TOOLS_BASE/username/sherlock"
+install_python_tool "$TOOLS_BASE/username/snoop"
+install_python_tool "$TOOLS_BASE/malware-analysis/volatility3"
+install_python_tool "$TOOLS_BASE/malware-analysis/scarabeo"
+install_python_tool "$TOOLS_BASE/attribution/apex-hunter"
+install_python_tool "$TOOLS_BASE/attribution/threatmap"
+install_python_tool "$TOOLS_BASE/offensive/impacket"
+install_python_tool "$TOOLS_BASE/offensive/netexec"
+install_python_tool "$TOOLS_BASE/offensive/responder"
+install_python_tool "$TOOLS_BASE/offensive/reqreaper"
+install_python_tool "$TOOLS_BASE/offensive/omnifuzz-llm"
+
+# ── PHASE 3: Download pre-built binaries ───────────────────────────────────
+echo -e "\n${BOLD}[3/4] Downloading pre-built binaries...${NC}"
+download_binary "nuclei"      "https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_amd64.zip" zip nuclei
+download_binary "ffuf"        "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_amd64.tar.gz" tar.gz ffuf
+download_binary "katana"      "https://github.com/projectdiscovery/katana/releases/download/v1.1.0/katana_1.1.0_linux_amd64.zip" zip katana
+download_binary "kerbrute"    "https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64" tar.gz kerbrute
+download_binary "feroxbuster" "https://github.com/epi052/feroxbuster/releases/download/v2.10.4/x86_64-linux-feroxbuster.zip" zip feroxbuster
+download_binary "gophish"     "https://github.com/gophish/gophish/releases/download/v0.12.1/gophish-v0.12.1-linux-64bit.zip" zip gophish
+
+# ── PHASE 4: Create wrappers ───────────────────────────────────────────────
+echo -e "\n${BOLD}[4/4] Creating tool wrappers...${NC}"
+make_wrapper "theharvester" "$TOOLS_BASE/recon/theHarvester"           "theHarvester.py"
+make_wrapper "recon-ng"     "$TOOLS_BASE/recon/recon-ng"               "recon-ng"
+make_wrapper "spiderfoot"   "$TOOLS_BASE/recon/spiderfoot"             "sf.py"
+make_wrapper "sherlock"     "$TOOLS_BASE/username/sherlock"            "sherlock/sherlock.py"
+make_wrapper "vol"          "$TOOLS_BASE/malware-analysis/volatility3" "vol.py"
+make_wrapper "scarabeo"     "$TOOLS_BASE/malware-analysis/scarabeo"    "main.py"
+make_wrapper "apexhunter"   "$TOOLS_BASE/attribution/apex-hunter"      "main.py"
+make_wrapper "threatmap"    "$TOOLS_BASE/attribution/threatmap"        "app.py"
+make_wrapper "netexec"      "$TOOLS_BASE/offensive/netexec"            "nxc"
+make_wrapper "reqreaper"    "$TOOLS_BASE/offensive/reqreaper"          "main.py"
+
+chmod +x "$BIN_DIR"/*
+
+touch "$SETUP_FLAG"
+
+echo ""
+echo -e "${GREEN}[+] ============================================${NC}"
+echo -e "${GREEN}[+] VenomOS tool setup complete!${NC}"
+echo -e "${GREEN}[+] ============================================${NC}"
+echo ""
+echo -e "  Run ${BOLD}venom-help${NC} to see all available tools."
+echo -e "  Run ${BOLD}venom-install <tool>${NC} for heavy tools (Havoc, Sliver, Caldera)."
+echo ""

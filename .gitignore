@@ -21,6 +21,9 @@ output/
 *.tar
 *.tar.gz
 
+# Tool files cloned at first boot — not baked into git
+build/config/includes.chroot/opt/venomOS/tools/
+
 # OS artifacts
 .DS_Store
 Thumbs.db

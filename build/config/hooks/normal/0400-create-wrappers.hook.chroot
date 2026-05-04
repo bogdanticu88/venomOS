@@ -1,256 +1,40 @@
 #!/bin/bash
-# VenomOS — Create tool wrapper scripts, symlinks, PATH setup, venom-help, venom-ai
+# VenomOS — Set up PATH, permissions, and XDG autostart for first-boot setup
 set -e
 
-TOOLS_BASE="/opt/venomOS/tools"
 BIN_DIR="/opt/venomOS/bin"
 mkdir -p "$BIN_DIR"
 
-make_wrapper() {
-    local name="$1"
-    local tool_path="$2"
-    local entry_point="$3"
-    local wrapper="$BIN_DIR/$name"
-
-    cat > "$wrapper" << WRAPPER
-#!/bin/bash
-cd "$tool_path"
-if [ -f ".venv/bin/python" ]; then
-    exec .venv/bin/python $entry_point "\$@"
-else
-    exec python3 $entry_point "\$@"
-fi
-WRAPPER
-    chmod +x "$wrapper"
-    echo "  [+] $name"
-}
-
-echo "[*] Creating tool wrappers..."
-
-# Recon
-make_wrapper "theharvester"   "$TOOLS_BASE/recon/theHarvester"   "theHarvester.py"
-make_wrapper "recon-ng"       "$TOOLS_BASE/recon/recon-ng"        "recon-ng"
-make_wrapper "spiderfoot"     "$TOOLS_BASE/recon/spiderfoot"      "sf.py"
-make_wrapper "sherlock"       "$TOOLS_BASE/username/sherlock"     "sherlock/sherlock.py"
-make_wrapper "snoop"          "$TOOLS_BASE/username/snoop"        "snoop.py"
-
-# Malware analysis
-make_wrapper "vol"            "$TOOLS_BASE/malware-analysis/volatility3"  "vol.py"
-make_wrapper "scarabeo"       "$TOOLS_BASE/malware-analysis/scarabeo"     "main.py"
-
-# Attribution / threat intel
-make_wrapper "apexhunter"     "$TOOLS_BASE/attribution/apex-hunter"       "main.py"
-make_wrapper "threatmap"      "$TOOLS_BASE/attribution/threatmap"         "app.py"
-
-# Offensive
-make_wrapper "netexec"        "$TOOLS_BASE/offensive/netexec"             "nxc"
-make_wrapper "reqreaper"      "$TOOLS_BASE/offensive/reqreaper"           "main.py"
-
 # Add /opt/venomOS/bin to system PATH
-echo 'export PATH="$PATH:/opt/venomOS/bin"' >> /etc/profile.d/venomOS.sh
+cat > /etc/profile.d/venomOS.sh << 'EOF'
+export PATH="$PATH:/opt/venomOS/bin"
+export VENOM_TOOLS="/opt/venomOS/tools"
+export VENOM_AI="/opt/venomOS/ai"
+EOF
 chmod +x /etc/profile.d/venomOS.sh
 
-# Symlinks for binaries already in BIN_DIR (no wrapper needed)
-for bin in nuclei ffuf katana kerbrute gophish evilginx2 feroxbuster; do
-    if [ -f "$BIN_DIR/$bin" ]; then
-        ln -sf "$BIN_DIR/$bin" "/usr/local/bin/$bin" 2>/dev/null || true
-    fi
+# Make all scripts in bin executable
+chmod +x "$BIN_DIR"/* 2>/dev/null || true
+
+# Create tool category directories (empty, populated by venom-setup at first boot)
+for dir in recon username ioc-enrichment attribution malware-analysis \
+            network offensive breach geo imageint socmint visualization; do
+    mkdir -p "/opt/venomOS/tools/$dir"
 done
 
-# Symlink for radare2 (installed via apt)
-ln -sf "$(command -v r2 2>/dev/null || echo /usr/bin/r2)" /usr/local/bin/r2 2>/dev/null || true
+# Create AI directories
+mkdir -p /opt/venomOS/ai/prompts
 
-echo "[*] Creating venom-ai..."
-cat > "$BIN_DIR/venom-ai" << 'SCRIPT'
-#!/bin/bash
-# venom-ai — local AI analyst powered by Ollama
-MODEL="${VENOM_MODEL:-mistral}"
-PROMPTS="/opt/venomOS/ai/prompts"
+# XDG autostart — show setup prompt on first login if tools not installed
+cat > /etc/xdg/autostart/venom-firstboot.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=VenomOS First Boot Setup
+Exec=bash -c "[ ! -f /opt/venomOS/.setup-complete ] && xfce4-terminal -e 'venom-setup' || true"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
 
-usage() {
-    echo "Usage: venom-ai <command> [input]"
-    echo ""
-    echo "Commands:"
-    echo "  ioc <indicator>    Enrich an IOC (IP, domain, hash, URL)"
-    echo "  apt <ttps>         APT attribution analysis"
-    echo "  osint <subject>    OSINT correlation"
-    echo "  <free text>        General analyst query"
-    echo ""
-    echo "Model: $MODEL  (override: export VENOM_MODEL=llama3)"
-}
-
-if [ $# -eq 0 ]; then usage; exit 0; fi
-
-case "$1" in
-    ioc)
-        shift; INPUT="$*"
-        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/ioc-enrichment.md" 2>/dev/null | grep -v '```')
-        echo "${TEMPLATE/\{indicator\}/$INPUT}" | ollama run "$MODEL"
-        ;;
-    apt)
-        shift; INPUT="$*"
-        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/apt-attribution.md" 2>/dev/null | grep -v '```')
-        echo "${TEMPLATE/\{input\}/$INPUT}" | ollama run "$MODEL"
-        ;;
-    osint)
-        shift; INPUT="$*"
-        TEMPLATE=$(sed -n '/^```$/,/^```$/p' "$PROMPTS/osint-correlation.md" 2>/dev/null | grep -v '```')
-        echo "${TEMPLATE/\{subject\}/$INPUT}" | ollama run "$MODEL"
-        ;;
-    help|--help|-h)
-        usage
-        ;;
-    *)
-        echo "$*" | ollama run "$MODEL"
-        ;;
-esac
-SCRIPT
-chmod +x "$BIN_DIR/venom-ai"
-
-echo "[*] Creating venom-help..."
-cat > "$BIN_DIR/venom-help" << 'SCRIPT'
-#!/bin/bash
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-echo ""
-echo -e "${GREEN} __   _____ _  _  ___  __  __  ___  ___ ${NC}"
-echo -e "${GREEN} \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|${NC}"
-echo -e "${GREEN}  \ V /| _|| .\` | (_) | |\/| | (_) \__ \\${NC}"
-echo -e "${GREEN}   \_/ |___|_|\_|\___/|_|  |_|\___/|___/${NC}"
-echo ""
-echo -e "${BOLD}  Intelligence. Precision. Persistence.${NC}"
-echo ""
-
-section() { echo -e "\n${CYAN}[$1]${NC}"; }
-tool()    { echo -e "  ${GREEN}$1${NC}  $2"; }
-
-section "RECON & OSINT"
-tool "theharvester"   "email, subdomain, IP harvesting"
-tool "recon-ng"       "modular recon framework"
-tool "spiderfoot"     "automated OSINT across 100+ sources"
-tool "sherlock"       "username search across 400+ sites"
-tool "snoop"          "username recon across 5,400+ sites"
-tool "nuclei"         "template-based vulnerability scanner"
-tool "ffuf"           "web fuzzer"
-tool "katana"         "web crawler and spider"
-tool "feroxbuster"    "fast content discovery"
-
-section "INTELLIGENCE & APT TRACKING"
-tool "apexhunter"     "threat hunting playbooks with local LLM"
-tool "threatmap"      "MITRE ATT&CK / STRIDE threat modeler"
-tool "scarabeo"       "modular malware analysis framework"
-tool "vol"            "Volatility3 — memory forensics"
-tool "r2"             "Radare2 — reverse engineering"
-tool "caldera"        "MITRE adversary emulation (see /opt/venomOS/tools/attribution/caldera)"
-tool "atomic-rt"      "ATT&CK TTP tests (see /opt/venomOS/tools/attribution/atomic-red-team)"
-
-section "OFFENSIVE"
-tool "netexec"        "Windows network pentesting (SMB/WinRM/LDAP)"
-tool "impacket"       "Windows protocol implementations"
-tool "responder"      "LLMNR/NBT-NS poisoner"
-tool "kerbrute"       "Kerberos user enum and brute force"
-tool "gophish"        "phishing campaign framework"
-tool "evilginx2"      "reverse proxy MFA bypass"
-tool "reqreaper"      "API security pentesting"
-tool "nmap"           "network scanner"
-tool "sqlmap"         "SQL injection"
-tool "hashcat"        "password cracking"
-tool "hydra"          "online brute force"
-tool "aircrack-ng"    "wireless security"
-
-section "AI ASSISTANT"
-tool "venom-ai ioc <indicator>"   "enrich an IOC"
-tool "venom-ai apt <ttps>"        "APT attribution analysis"
-tool "venom-ai osint <subject>"   "OSINT correlation"
-tool "venom-ai <query>"           "general analyst query"
-echo ""
-echo -e "  Model: ${GREEN}${VENOM_MODEL:-mistral}${NC}  (override: export VENOM_MODEL=llama3)"
-
-section "HEAVY TOOLS (post-install)"
-tool "venom-install havoc"       "Havoc C2 framework"
-tool "venom-install sliver"      "Sliver C2 framework"
-tool "venom-install bloodhound"  "BloodHound AD attack paths"
-tool "venom-install caldera"     "MITRE Caldera adversary emulation"
-echo ""
-SCRIPT
-chmod +x "$BIN_DIR/venom-help"
-
-echo "[*] Creating venom-install (heavy tools)..."
-cat > "$BIN_DIR/venom-install" << 'SCRIPT'
-#!/bin/bash
-# venom-install — post-boot installer for heavy tools requiring compilation
-
-TOOLS_BASE="/opt/venomOS/tools"
-
-case "$1" in
-    sliver)
-        echo "[*] Installing Sliver C2..."
-        cd "$TOOLS_BASE/offensive/sliver"
-        go build -o /opt/venomOS/bin/sliver-server ./server && \
-        go build -o /opt/venomOS/bin/sliver-client ./client && \
-        echo "[+] Sliver installed." || echo "[-] Sliver build failed."
-        ;;
-    bloodhound)
-        echo "[*] Installing BloodHound..."
-        cd "$TOOLS_BASE/attribution/bloodhound"
-        npm install && npm run build && \
-        echo "[+] BloodHound built." || echo "[-] BloodHound build failed."
-        ;;
-    caldera)
-        echo "[*] Installing Caldera..."
-        cd "$TOOLS_BASE/attribution/caldera"
-        python3 -m venv .venv
-        .venv/bin/pip install -r requirements.txt
-        echo "[+] Caldera installed. Run: cd $TOOLS_BASE/attribution/caldera && .venv/bin/python server.py"
-        ;;
-    havoc)
-        echo "[*] Installing Havoc C2 (requires cmake, Qt5)..."
-        apt-get install -y cmake libssl-dev libz-dev qtbase5-dev qtchooser \
-            qt5-qmake qtbase5-dev-tools libqt5websockets5-dev python3-dev 2>/dev/null
-        cd "$TOOLS_BASE/offensive/havoc"
-        make -C Teamserver && make -C Client && \
-        cp Teamserver/bin/teamserver /opt/venomOS/bin/havoc-server && \
-        cp Client/Havoc /opt/venomOS/bin/havoc-client && \
-        echo "[+] Havoc installed." || echo "[-] Havoc build failed."
-        ;;
-    roguedetect)
-        echo "[*] Building RogueDetect (Rust)..."
-        cd "$TOOLS_BASE/network/roguedetect"
-        cargo build --release && \
-        cp target/release/roguedetect /opt/venomOS/bin/ && \
-        echo "[+] RogueDetect installed." || echo "[-] Build failed."
-        ;;
-    ratrace)
-        echo "[*] Building RatRace (Go)..."
-        cd "$TOOLS_BASE/offensive/ratrace"
-        go build -o /opt/venomOS/bin/ratrace . && \
-        echo "[+] RatRace installed." || echo "[-] Build failed."
-        ;;
-    authbridge)
-        echo "[*] Building AuthBridge (Go)..."
-        cd "$TOOLS_BASE/offensive/authbridge"
-        go build -o /opt/venomOS/bin/authbridge . && \
-        echo "[+] AuthBridge installed." || echo "[-] Build failed."
-        ;;
-    *)
-        echo "Usage: venom-install <tool>"
-        echo ""
-        echo "Available:"
-        echo "  sliver        Sliver C2 framework"
-        echo "  bloodhound    BloodHound AD attack paths"
-        echo "  caldera       MITRE Caldera adversary emulation"
-        echo "  havoc         Havoc C2 framework"
-        echo "  roguedetect   Rogue device detector (Rust)"
-        echo "  ratrace       Race condition exploitation (Go)"
-        echo "  authbridge    Pentest credential manager (Go)"
-        ;;
-esac
-SCRIPT
-chmod +x "$BIN_DIR/venom-install"
-
-echo "[+] All wrappers and scripts created."
-echo "[*] Tools available via: venom-help"
+echo "[+] VenomOS environment configured."
+echo "[+] Tools will be installed at first boot via: venom-setup"

@@ -1,0 +1,64 @@
+#!/bin/bash
+GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
+SETUP_FLAG="/opt/venomOS/.setup-complete"
+
+echo ""
+echo -e "${GREEN} __   _____ _  _  ___  __  __  ___  ___ ${NC}"
+echo -e "${GREEN} \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|${NC}"
+echo -e "${GREEN}  \ V /| _|| .\` | (_) | |\/| | (_) \__ \\${NC}"
+echo -e "${GREEN}   \_/ |___|_|\_|\___/|_|  |_|\___/|___/${NC}"
+echo -e "\n${BOLD}  Intelligence. Precision. Persistence.${NC}\n"
+
+if [ ! -f "$SETUP_FLAG" ]; then
+    echo -e "  ${RED}[!] Tools not yet installed.${NC}"
+    echo -e "  Run: ${BOLD}sudo venom-setup${NC}\n"
+fi
+
+s() { echo -e "\n${CYAN}[$1]${NC}"; }
+t() { printf "  ${GREEN}%-20s${NC} %s\n" "$1" "$2"; }
+
+s "SETUP"
+t "venom-setup"    "install all tools from GitHub (run once after boot)"
+t "venom-install"  "install heavy tools (Havoc, Sliver, Caldera)"
+
+s "RECON & OSINT"
+t "theharvester"   "emails, subdomains, IPs from public sources"
+t "recon-ng"       "modular recon framework with API integrations"
+t "spiderfoot"     "automated OSINT across 100+ sources"
+t "sherlock"       "username search across 400+ platforms"
+t "snoop"          "username recon across 5,400+ sites"
+t "nuclei"         "template-based vulnerability scanner (9000+ templates)"
+t "ffuf"           "web fuzzer — dirs, params, vhosts"
+t "katana"         "fast web crawler and spider"
+t "feroxbuster"    "recursive content discovery"
+t "nmap"           "network scanner"
+t "sqlmap"         "SQL injection"
+
+s "INTELLIGENCE & APT TRACKING"
+t "apexhunter"     "threat hunting playbooks + local LLM (Ollama)"
+t "threatmap"      "MITRE ATT&CK / STRIDE threat modeler"
+t "scarabeo"       "modular malware analysis framework"
+t "vol"            "Volatility3 — memory forensics"
+t "r2"             "Radare2 — reverse engineering"
+t "caldera"        "MITRE adversary emulation platform"
+
+s "OFFENSIVE"
+t "netexec"        "SMB/WinRM/LDAP Windows network pentesting"
+t "impacket"       "Python Windows protocol implementations"
+t "responder"      "LLMNR/NBT-NS poisoner + credential capture"
+t "kerbrute"       "Kerberos user enum and brute force"
+t "gophish"        "phishing campaign framework"
+t "evilginx2"      "reverse proxy — bypasses MFA, steals sessions"
+t "reqreaper"      "API security pentesting"
+t "hashcat"        "GPU password cracking"
+t "hydra"          "online brute force"
+t "aircrack-ng"    "wireless security toolkit"
+t "wireshark"      "packet capture and analysis"
+
+s "AI ASSISTANT"
+t "venom-ai ioc"   "<indicator>  — enrich an IOC"
+t "venom-ai apt"   "<ttps>       — APT attribution"
+t "venom-ai osint" "<subject>    — OSINT correlation"
+t "venom-ai"       "<query>      — general analyst query"
+echo -e "\n  Model: ${GREEN}${VENOM_MODEL:-mistral}${NC}  (override: export VENOM_MODEL=llama3)"
+echo ""

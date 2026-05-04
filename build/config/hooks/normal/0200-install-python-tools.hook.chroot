@@ -1,68 +1,8 @@
 #!/bin/bash
-# VenomOS — Install Python-based tools into isolated venvs
-set -e
+# Tools are installed at first boot via venom-setup, not at ISO build time.
+# This hook is intentionally minimal — only system-level Python packages needed
+# by the live environment itself.
 
-TOOLS_BASE="/opt/venomOS/tools"
-
-install_python_tool() {
-    local tool_path="$1"
-    local tool_name
-    tool_name=$(basename "$tool_path")
-
-    if [ ! -d "$tool_path" ]; then
-        echo "  [skip] $tool_name — directory not found"
-        return
-    fi
-
-    echo "  [*] $tool_name"
-
-    python3 -m venv "$tool_path/.venv" --quiet
-
-    if [ -f "$tool_path/requirements.txt" ]; then
-        "$tool_path/.venv/bin/pip" install --quiet --upgrade pip
-        "$tool_path/.venv/bin/pip" install --quiet -r "$tool_path/requirements.txt" || \
-            echo "  [warn] $tool_name: some requirements failed"
-    elif [ -f "$tool_path/setup.py" ] || [ -f "$tool_path/pyproject.toml" ]; then
-        "$tool_path/.venv/bin/pip" install --quiet --upgrade pip
-        "$tool_path/.venv/bin/pip" install --quiet -e "$tool_path" || \
-            echo "  [warn] $tool_name: install failed"
-    else
-        echo "  [skip] $tool_name — no requirements.txt or setup.py"
-        return
-    fi
-
-    echo "  [+] $tool_name — installed"
-}
-
-echo "[*] Installing Python tools..."
-
-# Recon tools
-install_python_tool "$TOOLS_BASE/recon/theHarvester"
-install_python_tool "$TOOLS_BASE/recon/recon-ng"
-install_python_tool "$TOOLS_BASE/recon/spiderfoot"
-install_python_tool "$TOOLS_BASE/recon/shodanx"
-install_python_tool "$TOOLS_BASE/recon/osint-master-tool"
-install_python_tool "$TOOLS_BASE/recon/osint-agentic-framework"
-install_python_tool "$TOOLS_BASE/recon/d4rk-intel"
-
-# Username tools
-install_python_tool "$TOOLS_BASE/username/sherlock"
-install_python_tool "$TOOLS_BASE/username/snoop"
-
-# Malware analysis
-install_python_tool "$TOOLS_BASE/malware-analysis/volatility3"
-install_python_tool "$TOOLS_BASE/malware-analysis/scarabeo"
-
-# Attribution / threat intel
-install_python_tool "$TOOLS_BASE/attribution/apex-hunter"
-install_python_tool "$TOOLS_BASE/attribution/threatmap"
-install_python_tool "$TOOLS_BASE/attribution/eris-intelligence"
-
-# Offensive — Python tools
-install_python_tool "$TOOLS_BASE/offensive/impacket"
-install_python_tool "$TOOLS_BASE/offensive/netexec"
-install_python_tool "$TOOLS_BASE/offensive/responder"
-install_python_tool "$TOOLS_BASE/offensive/reqreaper"
-install_python_tool "$TOOLS_BASE/offensive/omnifuzz-llm"
-
-echo "[+] Python tools installation complete."
+echo "[*] Configuring Python environment..."
+pip3 install --quiet --break-system-packages pipx 2>/dev/null || true
+echo "[+] Python environment ready."
