@@ -1,0 +1,45 @@
+[submodule "tools/username/sherlock"]
+	path = tools/username/sherlock
+	url = https://github.com/sherlock-project/sherlock
+[submodule "tools/username/snoop"]
+	path = tools/username/snoop
+	url = https://github.com/snooppr/snoop
+[submodule "tools/username/whats-my-name"]
+	path = tools/username/whats-my-name
+	url = https://github.com/WebBreacher/WhatsMyName
+[submodule "tools/recon/theHarvester"]
+	path = tools/recon/theHarvester
+	url = https://github.com/laramies/theHarvester
+[submodule "tools/recon/recon-ng"]
+	path = tools/recon/recon-ng
+	url = https://github.com/lanmaster53/recon-ng
+[submodule "tools/recon/sublist3r"]
+	path = tools/recon/sublist3r
+	url = https://github.com/aboul3la/Sublist3r
+[submodule "tools/recon/spiderfoot"]
+	path = tools/recon/spiderfoot
+	url = https://github.com/smicallef/spiderfoot
+[submodule "tools/recon/shodanx"]
+	path = tools/recon/shodanx
+	url = https://github.com/RevoltSecurities/ShodanX
+[submodule "tools/recon/sarenka"]
+	path = tools/recon/sarenka
+	url = https://github.com/KTZgraph/sarenka
+[submodule "tools/ioc-enrichment/nox-framework"]
+	path = tools/ioc-enrichment/nox-framework
+	url = https://github.com/nox-project/nox-framework
+[submodule "tools/recon/osint-master-tool"]
+	path = tools/recon/osint-master-tool
+	url = https://github.com/aingram702/OSINT-Master-Tool
+[submodule "tools/recon/d4rk-intel"]
+	path = tools/recon/d4rk-intel
+	url = https://github.com/techenthusiast167/D4rk_Intel-OSINT-Investigative-Toolkit
+[submodule "tools/recon/osint-agentic-framework"]
+	path = tools/recon/osint-agentic-framework
+	url = https://github.com/V1n1v131r4/OSINT-Agentic-Framework
+[submodule "tools/recon/yacy"]
+	path = tools/recon/yacy
+	url = https://github.com/yacy/yacy_search_server
+[submodule "tools/ioc-enrichment/as-ip-blocks"]
+	path = tools/ioc-enrichment/as-ip-blocks
+	url = https://github.com/ipverse/as-ip-blocks
