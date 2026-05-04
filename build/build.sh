@@ -20,11 +20,12 @@ mkdir -p config/includes.chroot/opt/venomOS/bin
 mkdir -p config/includes.chroot/opt/venomOS/ai
 
 # Copy tools (exclude .git dirs to keep ISO lean)
-rsync -a --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
-    /venomOS/tools/ config/includes.chroot/opt/venomOS/tools/
+# --ignore-errors + || true: non-fatal if Defender/AV has quarantined some files
+rsync -a --ignore-errors --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
+    /venomOS/tools/ config/includes.chroot/opt/venomOS/tools/ || true
 
 # Copy AI prompts and model config
-rsync -a /venomOS/ai/ config/includes.chroot/opt/venomOS/ai/
+rsync -a --ignore-errors /venomOS/ai/ config/includes.chroot/opt/venomOS/ai/ || true
 
 echo "[*] Tools staged: $(find config/includes.chroot/opt/venomOS/tools -maxdepth 2 -mindepth 2 -type d | wc -l) tool directories"
 
