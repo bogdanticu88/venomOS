@@ -19,9 +19,17 @@ mkdir -p config/includes.chroot/opt/venomOS/tools
 mkdir -p config/includes.chroot/opt/venomOS/bin
 mkdir -p config/includes.chroot/opt/venomOS/ai
 
-# Copy tools (exclude .git dirs to keep ISO lean)
-# --ignore-errors + || true: non-fatal if Defender/AV has quarantined some files
-rsync -a --ignore-errors --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
+# Copy tools (exclude .git, caches, and heavy data repos that don't need to be baked in)
+# atomic-red-team and yacy are data/Java repos — excluded here, available post-install
+rsync -a --ignore-errors \
+    --exclude='.git' \
+    --exclude='__pycache__' \
+    --exclude='*.pyc' \
+    --exclude='*.class' \
+    --exclude='node_modules' \
+    --exclude='attribution/atomic-red-team' \
+    --exclude='recon/yacy' \
+    --exclude='attribution/bloodhound/node_modules' \
     /venomOS/tools/ config/includes.chroot/opt/venomOS/tools/ || true
 
 # Copy AI prompts and model config
