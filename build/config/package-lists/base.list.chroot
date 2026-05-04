@@ -1,0 +1,64 @@
+# VenomOS — Base system packages
+# Stage 1
+
+# Kernel and firmware
+linux-image-amd64
+firmware-linux
+firmware-linux-nonfree
+firmware-misc-nonfree
+
+# Live system
+live-tools
+live-config
+live-config-systemd
+cryptsetup
+cryptsetup-initramfs
+
+# System essentials
+sudo
+locales
+systemd
+dbus
+policykit-1
+
+# Network
+network-manager
+network-manager-gnome
+net-tools
+iproute2
+iputils-ping
+dnsutils
+curl
+wget
+
+# Shell and utilities
+bash
+zsh
+vim
+nano
+git
+htop
+btop
+tree
+file
+unzip
+zip
+p7zip-full
+rsync
+screen
+tmux
+man-db
+
+# Python (needed by many tools)
+python3
+python3-pip
+python3-venv
+python3-dev
+pipx
+
+# Build essentials (for compiling tools)
+build-essential
+gcc
+make
+libssl-dev
+libffi-dev

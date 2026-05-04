@@ -1,0 +1,28 @@
+# live-build generated config (auto-created by lb config, not tracked)
+build/config/bootstrap
+build/config/chroot
+build/config/binary
+build/config/source
+build/config/common
+
+# live-build state and artifacts
+build/.build/
+build/chroot/
+build/binary/
+build/source/
+build/cache/
+build/build.log
+
+# ISO output
+output/
+*.iso
+*.img
+*.zsync
+*.tar
+*.tar.gz
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+*~
+*.swp

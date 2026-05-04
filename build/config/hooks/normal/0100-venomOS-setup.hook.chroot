@@ -1,0 +1,82 @@
+#!/bin/bash
+# VenomOS Stage 1 setup hook
+# Runs inside the chroot during ISO build.
+set -e
+
+echo "[*] VenomOS: Running setup hook..."
+
+# Enable AppArmor
+systemctl enable apparmor 2>/dev/null || true
+
+# Enable fail2ban
+systemctl enable fail2ban 2>/dev/null || true
+
+# Configure UFW defaults (enabled at boot via hook, rules set here)
+ufw --force reset
+ufw default deny incoming
+ufw default allow outgoing
+# Do NOT ufw enable here — breaks chroot. Enabled via autostart instead.
+
+# Configure dnscrypt-proxy to listen on 127.0.0.1:53
+if [ -f /etc/dnscrypt-proxy/dnscrypt-proxy.toml ]; then
+    sed -i "s/^listen_addresses.*/listen_addresses = ['127.0.0.1:53']/" \
+        /etc/dnscrypt-proxy/dnscrypt-proxy.toml || true
+fi
+
+# Point resolv.conf at dnscrypt-proxy
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+chattr +i /etc/resolv.conf 2>/dev/null || true
+
+# Sysctl hardening
+cat > /etc/sysctl.d/99-venomOS-hardening.conf << 'EOF'
+# Disable IP forwarding
+net.ipv4.ip_forward = 0
+net.ipv6.conf.all.forwarding = 0
+
+# Ignore ICMP broadcast requests
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+
+# Disable source routing
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0
+
+# Enable SYN cookies
+net.ipv4.tcp_syncookies = 1
+
+# Disable IPv6 (optional — comment out if needed)
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+
+# Restrict dmesg to root
+kernel.dmesg_restrict = 1
+
+# Restrict ptrace
+kernel.yama.ptrace_scope = 1
+EOF
+
+# Set hostname
+echo "venomOS" > /etc/hostname
+
+# Custom MOTD
+cat > /etc/motd << 'EOF'
+
+ __   _____ _  _  ___  __  __  ___  ___
+ \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|
+  \ V /| _|| .` | (_) | |\/| | (_) \__ \
+   \_/ |___|_|\_|\___/|_|  |_|\___/|___/
+
+  Intelligence. Precision. Persistence.
+  Stage 1 — Base System
+  https://github.com/bogdanticu88/venomOS
+
+EOF
+
+# Set zsh as default shell for venom user (if zsh is installed)
+if command -v zsh &>/dev/null; then
+    chsh -s "$(command -v zsh)" venom 2>/dev/null || true
+fi
+
+# Disable root login
+passwd -l root 2>/dev/null || true
+
+echo "[+] VenomOS setup hook complete."

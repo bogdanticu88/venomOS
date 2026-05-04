@@ -1,0 +1,66 @@
+# VenomOS — Desktop environment packages (XFCE4)
+# Stage 1
+
+# Display server
+xorg
+xserver-xorg
+
+# XFCE4 core
+xfce4
+xfce4-terminal
+xfce4-goodies
+xfce4-power-manager
+xfce4-screensaver
+xfce4-clipman-plugin
+xfce4-whiskermenu-plugin
+
+# Display manager
+lightdm
+lightdm-gtk-greeter
+lightdm-gtk-greeter-settings
+
+# File manager
+thunar
+thunar-archive-plugin
+thunar-media-tags-plugin
+gvfs
+gvfs-backends
+
+# Text editor
+mousepad
+
+# Theming
+arc-theme
+papirus-icon-theme
+gtk2-engines-murrine
+gtk2-engines-pixbuf
+
+# Fonts
+fonts-jetbrains-mono
+fonts-hack
+fonts-noto
+fonts-firacode
+
+# Terminal emulator (alternative to xfce4-terminal)
+alacritty
+
+# System tools (GUI)
+gparted
+baobab
+
+# Multimedia
+vlc
+eog
+
+# Archive manager
+file-roller
+
+# Screenshot
+scrot
+flameshot
+
+# Browser (lightweight)
+firefox-esr
+
+# PDF viewer
+evince
