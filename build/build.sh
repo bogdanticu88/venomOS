@@ -13,6 +13,21 @@ echo ""
 echo "[*] Cleaning previous build artifacts..."
 lb clean --purge 2>/dev/null || true
 
+# Stage tools collection into the ISO filesystem
+echo "[*] Staging tools collection into includes.chroot..."
+mkdir -p config/includes.chroot/opt/venomOS/tools
+mkdir -p config/includes.chroot/opt/venomOS/bin
+mkdir -p config/includes.chroot/opt/venomOS/ai
+
+# Copy tools (exclude .git dirs to keep ISO lean)
+rsync -a --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
+    /venomOS/tools/ config/includes.chroot/opt/venomOS/tools/
+
+# Copy AI prompts and model config
+rsync -a /venomOS/ai/ config/includes.chroot/opt/venomOS/ai/
+
+echo "[*] Tools staged: $(find config/includes.chroot/opt/venomOS/tools -maxdepth 2 -mindepth 2 -type d | wc -l) tool directories"
+
 # Initialize live-build config from auto/config
 echo "[*] Initializing live-build configuration..."
 bash auto/config

@@ -30,7 +30,7 @@ mkdir -p "$OUTPUT_DIR"
 echo "[*] Launching build container..."
 docker run --rm \
     --privileged \
-    -v "$SCRIPT_DIR:/venomOS/build" \
+    -v "$PROJECT_ROOT:/venomOS" \
     -v "$OUTPUT_DIR:/output" \
     venomOS-builder \
     /bin/bash /venomOS/build/build.sh

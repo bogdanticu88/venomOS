@@ -1,0 +1,99 @@
+#!/bin/bash
+# VenomOS — Download pre-built Go/Rust binaries from GitHub releases
+set -e
+
+BIN_DIR="/opt/venomOS/bin"
+mkdir -p "$BIN_DIR"
+
+ARCH="amd64"
+OS="linux"
+
+download_binary() {
+    local name="$1"
+    local url="$2"
+    local archive_type="${3:-tar.gz}"
+    local binary_name="${4:-$name}"
+
+    echo "  [*] $name"
+
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    local archive="$tmp_dir/$name.$archive_type"
+
+    if ! curl -sL "$url" -o "$archive"; then
+        echo "  [warn] $name: download failed, skipping"
+        rm -rf "$tmp_dir"
+        return
+    fi
+
+    case "$archive_type" in
+        tar.gz|tgz)
+            tar -xzf "$archive" -C "$tmp_dir" 2>/dev/null || true
+            ;;
+        zip)
+            unzip -q "$archive" -d "$tmp_dir" 2>/dev/null || true
+            ;;
+    esac
+
+    # Find the binary
+    local binary
+    binary=$(find "$tmp_dir" -name "$binary_name" -type f | head -1)
+
+    if [ -n "$binary" ]; then
+        cp "$binary" "$BIN_DIR/$name"
+        chmod +x "$BIN_DIR/$name"
+        echo "  [+] $name installed to $BIN_DIR/$name"
+    else
+        echo "  [warn] $name: binary not found in archive"
+    fi
+
+    rm -rf "$tmp_dir"
+}
+
+echo "[*] Downloading pre-built binaries..."
+
+# Nuclei — vulnerability scanner
+NUCLEI_VER="3.3.7"
+download_binary "nuclei" \
+    "https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_VER}/nuclei_${NUCLEI_VER}_${OS}_${ARCH}.zip" \
+    "zip" "nuclei"
+
+# ffuf — web fuzzer
+FFUF_VER="2.1.0"
+download_binary "ffuf" \
+    "https://github.com/ffuf/ffuf/releases/download/v${FFUF_VER}/ffuf_${FFUF_VER}_${OS}_${ARCH}.tar.gz" \
+    "tar.gz" "ffuf"
+
+# Katana — web crawler
+KATANA_VER="1.1.0"
+download_binary "katana" \
+    "https://github.com/projectdiscovery/katana/releases/download/v${KATANA_VER}/katana_${KATANA_VER}_${OS}_${ARCH}.zip" \
+    "zip" "katana"
+
+# Kerbrute — Kerberos brute force
+KERBRUTE_VER="1.0.3"
+download_binary "kerbrute" \
+    "https://github.com/ropnop/kerbrute/releases/download/v${KERBRUTE_VER}/kerbrute_${OS}_${ARCH}" \
+    "tar.gz" "kerbrute"
+
+# GoPhish — phishing framework
+GOPHISH_VER="0.12.1"
+download_binary "gophish" \
+    "https://github.com/gophish/gophish/releases/download/v${GOPHISH_VER}/gophish-v${GOPHISH_VER}-${OS}-64bit.zip" \
+    "zip" "gophish"
+
+# Evilginx2 — reverse proxy phishing
+EVILGINX_VER="3.3.0"
+download_binary "evilginx2" \
+    "https://github.com/kgretzky/evilginx2/releases/download/v${EVILGINX_VER}/evilginx-v${EVILGINX_VER}-${OS}-${ARCH}.tar.gz" \
+    "tar.gz" "evilginx"
+
+# Feroxbuster — content discovery (Rust)
+FEROX_VER="2.10.4"
+download_binary "feroxbuster" \
+    "https://github.com/epi052/feroxbuster/releases/download/v${FEROX_VER}/x86_64-${OS}-feroxbuster.zip" \
+    "zip" "feroxbuster"
+
+echo "[+] Binary installations complete."
+echo "[*] Installed binaries:"
+ls -lh "$BIN_DIR/" 2>/dev/null

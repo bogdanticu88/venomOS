@@ -1,0 +1,70 @@
+# VenomOS — Tool runtime dependencies
+# Stage 2/3
+
+# Python packaging
+python3-pip
+python3-venv
+python3-dev
+pipx
+
+# Go (needed to run some Go-based tools)
+golang-go
+
+# Node.js (ERIS_intelligence, some OSINT tools)
+nodejs
+npm
+
+# Java runtime (YaCy)
+default-jre-headless
+
+# Ruby (Metasploit deps)
+ruby
+ruby-dev
+
+# Databases (SpiderFoot, Caldera use SQLite/Postgres)
+sqlite3
+libsqlite3-dev
+postgresql-client
+
+# Network libraries (Responder, Impacket deps)
+libpcap-dev
+libssl-dev
+libffi-dev
+python3-openssl
+python3-ldap3
+
+# Crypto and hashing (credential tools)
+hashcat
+john
+hydra
+
+# Build tools (compile some tools from source)
+build-essential
+cmake
+pkg-config
+libglib2.0-dev
+
+# Wireshark / network analysis
+wireshark
+tshark
+tcpdump
+nmap
+masscan
+netcat-openbsd
+
+# Web tools
+curl
+wget
+jq
+
+# Radare2 (reverse engineering)
+radare2
+
+# Aircrack suite (wireless)
+aircrack-ng
+
+# Additional pentest packages
+sqlmap
+nikto
+dirb
+wfuzz
