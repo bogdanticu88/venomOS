@@ -136,7 +136,13 @@ if ls "$BUILD_DIR"/*.iso 1>/dev/null 2>&1; then
     echo "[+] Build successful!"
     echo "[+] ISO: $ISONAME ($SIZE)"
     echo "[+] ============================="
-    cp "$ISO" "/output/$ISONAME"
+    # Use dd with a fixed 4 MiB buffer instead of cp. cp uses sendfile/splice
+    # which can ENOMEM when copying multi-gigabyte files across the
+    # container -> WSL -> NTFS -> OneDrive boundary (kernel writeback can't
+    # drain fast enough and the page cache fills). dd bs=4M conv=fsync
+    # writes in small chunks and forces a sync at the end.
+    echo "[*] Copying ISO to /output (dd, 4 MiB chunks)..."
+    dd if="$ISO" of="/output/$ISONAME" bs=4M conv=fsync status=none
     echo "[+] ISO copied to /output/$ISONAME"
 else
     echo "[-] Build failed — no ISO produced."

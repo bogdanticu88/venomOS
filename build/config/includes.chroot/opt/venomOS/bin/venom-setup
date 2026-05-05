@@ -172,6 +172,8 @@ clone_tool offensive gophish      gophish/gophish
 clone_tool offensive evilginx2    kgretzky/evilginx2
 clone_tool offensive havoc        HavocFramework/Havoc
 clone_tool offensive sliver       BishopFox/sliver
+clone_tool offensive xsstrike     s0md3v/XSStrike
+clone_tool offensive powersploit  PowerShellMafia/PowerSploit
 
 # ── PHASE 2: Install Python deps ───────────────────────────────────────────
 echo -e "\n${BOLD}[2/4] Installing Python dependencies...${NC}"
@@ -189,6 +191,7 @@ install_python_tool "$TOOLS_BASE/offensive/netexec"
 install_python_tool "$TOOLS_BASE/offensive/responder"
 install_python_tool "$TOOLS_BASE/offensive/reqreaper"
 install_python_tool "$TOOLS_BASE/offensive/omnifuzz-llm"
+install_python_tool "$TOOLS_BASE/offensive/xsstrike"
 
 # ── PHASE 3: Download pre-built binaries ───────────────────────────────────
 echo -e "\n${BOLD}[3/4] Downloading pre-built binaries...${NC}"
@@ -199,6 +202,7 @@ download_binary "kerbrute"    "https://github.com/ropnop/kerbrute/releases/downl
 download_binary "feroxbuster" "https://github.com/epi052/feroxbuster/releases/download/v2.10.4/x86_64-linux-feroxbuster.zip" zip feroxbuster
 download_binary "gophish"     "https://github.com/gophish/gophish/releases/download/v0.12.1/gophish-v0.12.1-linux-64bit.zip" zip gophish
 download_binary "chainsaw"    "https://github.com/WithSecureLabs/chainsaw/releases/download/v2.13.2/chainsaw_x86_64-unknown-linux-gnu.tar.gz" tar.gz chainsaw
+download_binary "amass"       "https://github.com/owasp-amass/amass/releases/download/v4.2.0/amass_Linux_amd64.zip" zip amass
 
 # ── PHASE 4: Create wrappers ───────────────────────────────────────────────
 echo -e "\n${BOLD}[4/4] Creating tool wrappers...${NC}"
@@ -212,6 +216,7 @@ make_wrapper "apexhunter"   "$TOOLS_BASE/attribution/apex-hunter"      "main.py"
 make_wrapper "threatmap"    "$TOOLS_BASE/attribution/threatmap"        "app.py"
 make_wrapper "netexec"      "$TOOLS_BASE/offensive/netexec"            "nxc"
 make_wrapper "reqreaper"    "$TOOLS_BASE/offensive/reqreaper"          "main.py"
+make_wrapper "xsstrike"     "$TOOLS_BASE/offensive/xsstrike"           "xsstrike.py"
 
 chmod +x "$BIN_DIR"/*
 

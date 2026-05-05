@@ -70,3 +70,8 @@ sqlmap
 nikto
 dirb
 wfuzz
+
+# Stage 3 — offensive network/credential
+bettercap
+ettercap-text-only
+cewl
