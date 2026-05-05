@@ -14,12 +14,27 @@ live-config-systemd
 cryptsetup
 cryptsetup-initramfs
 
+# Bootloader binaries — grub-pc and grub-efi-amd64 conflict; install -bin variants
+# which provide the tools lb binary_grub-pc/efi need without the conflict
+grub-common
+grub-pc-bin
+grub-efi-amd64-bin
+mtools
+librsvg2-bin
+
+# ISO assembly tools (lb binary_iso apt-installs these into chroot)
+xorriso
+isolinux
+syslinux-common
+dosfstools
+
 # System essentials
 sudo
 locales
 systemd
 dbus
-policykit-1
+polkitd
+pkexec
 
 # Network
 network-manager

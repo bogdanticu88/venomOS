@@ -22,17 +22,17 @@ if ! command -v docker &>/dev/null; then
     exit 1
 fi
 
-echo "[*] Building Docker image: venomOS-builder..."
-docker build -t venomOS-builder "$SCRIPT_DIR"
+echo "[*] Building Docker image: venomos-builder..."
+docker build -t venomos-builder "$SCRIPT_DIR"
 
 mkdir -p "$OUTPUT_DIR"
 
 echo "[*] Launching build container..."
-docker run --rm \
+MSYS_NO_PATHCONV=1 docker run --rm \
     --privileged \
     -v "$PROJECT_ROOT:/venomOS" \
     -v "$OUTPUT_DIR:/output" \
-    venomOS-builder \
+    venomos-builder \
     /bin/bash /venomOS/build/build.sh
 
 echo ""

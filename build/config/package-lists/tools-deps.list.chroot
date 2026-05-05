@@ -57,8 +57,7 @@ curl
 wget
 jq
 
-# Radare2 (reverse engineering)
-radare2
+# radare2 not in trixie repos — installed at first boot via venom-setup
 
 # Aircrack suite (wireless)
 aircrack-ng

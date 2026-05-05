@@ -1,0 +1,14 @@
+#!/bin/sh
+# Late-stage chroot fix:
+# 1. systemd-resolved/resolvconf postinst rewrites or bind-mounts /etc/resolv.conf
+#    so DNS points at 127.0.0.53 (or fails) — apt-get update breaks downstream.
+# 2. Drain any bind mounts so we can actually replace the file, then write a
+#    known-good upstream resolver.
+# 3. Repopulate apt lists so the binary stage has fresh metadata to install
+#    librsvg2-bin, mtools, etc. (failed apt-get updates leave lists stale).
+while mountpoint -q /etc/resolv.conf 2>/dev/null; do
+    umount -l /etc/resolv.conf 2>/dev/null || break
+done
+rm -f /etc/resolv.conf 2>/dev/null || true
+printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > /etc/resolv.conf
+apt-get update 2>&1 | tail -5 || true
