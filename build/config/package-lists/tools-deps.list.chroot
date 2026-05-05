@@ -38,6 +38,9 @@ hashcat
 john
 hydra
 
+# Intelligence — pattern matching (rules cloned by venom-setup)
+yara
+
 # Build tools (compile some tools from source)
 build-essential
 cmake

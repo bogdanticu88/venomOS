@@ -141,6 +141,8 @@ clone_tool username whats-my-name  WebBreacher/WhatsMyName
 echo -e "\n  ${CYAN}IOC Enrichment${NC}"
 clone_tool ioc-enrichment nox-framework nox-project/nox-framework
 clone_tool ioc-enrichment as-ip-blocks  ipverse/as-ip-blocks
+clone_tool ioc-enrichment yara-rules    Yara-Rules/rules
+clone_tool ioc-enrichment sigma         SigmaHQ/sigma
 
 echo -e "\n  ${CYAN}Attribution & Threat Intel${NC}"
 clone_tool attribution apex-hunter       bogdanticu88/ApexHunter
@@ -196,6 +198,7 @@ download_binary "katana"      "https://github.com/projectdiscovery/katana/releas
 download_binary "kerbrute"    "https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64" tar.gz kerbrute
 download_binary "feroxbuster" "https://github.com/epi052/feroxbuster/releases/download/v2.10.4/x86_64-linux-feroxbuster.zip" zip feroxbuster
 download_binary "gophish"     "https://github.com/gophish/gophish/releases/download/v0.12.1/gophish-v0.12.1-linux-64bit.zip" zip gophish
+download_binary "chainsaw"    "https://github.com/WithSecureLabs/chainsaw/releases/download/v2.13.2/chainsaw_x86_64-unknown-linux-gnu.tar.gz" tar.gz chainsaw
 
 # ── PHASE 4: Create wrappers ───────────────────────────────────────────────
 echo -e "\n${BOLD}[4/4] Creating tool wrappers...${NC}"
