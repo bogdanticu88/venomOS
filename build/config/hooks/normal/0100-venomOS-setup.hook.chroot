@@ -11,21 +11,27 @@ systemctl enable apparmor 2>/dev/null || true
 # Enable fail2ban
 systemctl enable fail2ban 2>/dev/null || true
 
-# Configure UFW defaults (enabled at boot via hook, rules set here)
+# Configure UFW defaults — rules set here, firewall enabled at first boot via
+# venom-firstboot.service (running `ufw enable` inside a chroot fails because
+# iptables can't be loaded against the host kernel).
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
-# Do NOT ufw enable here — breaks chroot. Enabled via autostart instead.
 
-# Configure dnscrypt-proxy to listen on 127.0.0.1:53
+# Configure dnscrypt-proxy to listen on 127.0.0.1:53. We mask systemd-resolved
+# below so the port is free; user can opt back in later by switching resolv.conf
+# to 127.0.0.1. For Stage 1 we leave resolv.conf to NetworkManager/DHCP so the
+# live system has working DNS even if dnscrypt-proxy fails to start.
 if [ -f /etc/dnscrypt-proxy/dnscrypt-proxy.toml ]; then
     sed -i "s/^listen_addresses.*/listen_addresses = ['127.0.0.1:53']/" \
         /etc/dnscrypt-proxy/dnscrypt-proxy.toml || true
 fi
 
-# Point resolv.conf at dnscrypt-proxy
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
-chattr +i /etc/resolv.conf 2>/dev/null || true
+# Free port 53 so dnscrypt-proxy (or any future resolver) can bind it.
+systemctl mask systemd-resolved 2>/dev/null || true
+
+# First-boot service does what we can't do inside the chroot (e.g. ufw enable).
+systemctl enable venom-firstboot.service 2>/dev/null || true
 
 # Sysctl hardening
 cat > /etc/sysctl.d/99-venomOS-hardening.conf << 'EOF'

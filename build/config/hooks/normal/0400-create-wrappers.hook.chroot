@@ -16,6 +16,16 @@ chmod +x /etc/profile.d/venomOS.sh
 # Make all scripts in bin executable
 chmod +x "$BIN_DIR"/* 2>/dev/null || true
 
+# Symlink venom-* into /usr/local/bin so they're discoverable without a login
+# shell — sudo's secure_path, XDG autostart, and non-interactive shells all
+# look there but won't pick up /opt/venomOS/bin from /etc/profile.d.
+mkdir -p /usr/local/bin
+for cmd in venom-setup venom-help venom-ai; do
+    if [ -f "$BIN_DIR/$cmd" ]; then
+        ln -sf "$BIN_DIR/$cmd" "/usr/local/bin/$cmd"
+    fi
+done
+
 # Create tool category directories (empty, populated by venom-setup at first boot)
 for dir in recon username ioc-enrichment attribution malware-analysis \
             network offensive breach geo imageint socmint visualization; do
