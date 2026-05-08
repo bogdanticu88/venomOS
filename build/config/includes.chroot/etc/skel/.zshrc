@@ -44,8 +44,12 @@ bindkey '^[[B' down-line-or-search
 
 # Welcome
 if [[ -t 1 ]]; then
-    echo ""
-    echo "  VenomOS — Intelligence. Precision. Persistence."
-    echo "  Type 'venom-help' for available tools."
-    echo ""
+    if command -v fastfetch &>/dev/null; then
+        fastfetch
+    else
+        echo ""
+        echo "  VenomOS — Intelligence. Precision. Persistence."
+        echo "  Type 'venom-help' for available tools."
+        echo ""
+    fi
 fi

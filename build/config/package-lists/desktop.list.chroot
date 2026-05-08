@@ -67,7 +67,7 @@ evince
 
 # Branding and visual tools
 imagemagick
-neofetch
+fastfetch
 
 # Plymouth boot splash
 plymouth

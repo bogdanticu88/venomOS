@@ -100,40 +100,29 @@ if command -v plymouth-set-default-theme &>/dev/null; then
     fi
 fi
 
-# ── Neofetch system-wide default ─────────────────────────────────────────────
-# Place system-wide config so it works even without per-user config
-if command -v neofetch &>/dev/null; then
-    mkdir -p /etc/neofetch
-    cat > /etc/neofetch/config.conf << 'NEOFETCH_EOF'
-print_info() {
-    prin ""
-    info "  OS"       distro
-    info "  Kernel"   kernel
-    info "  Uptime"   uptime
-    info "  Shell"    shell
-    info "  DE"       de
-    info "  Terminal" term
-    info "  CPU"      cpu
-    info "  Memory"   memory
-    prin ""
+# ── Fastfetch system-wide preset ─────────────────────────────────────────────
+if command -v fastfetch &>/dev/null; then
+    mkdir -p /etc/fastfetch
+    cat > /etc/fastfetch/config.jsonc << 'FASTFETCH_EOF'
+{
+  "logo": { "source": "venomos", "color": { "1": "green", "2": "red" } },
+  "display": { "separator": "  ", "color": { "keys": "green", "values": "white" } },
+  "modules": [
+    "break",
+    { "type": "os",       "key": "  OS      " },
+    { "type": "kernel",   "key": "  Kernel  " },
+    { "type": "uptime",   "key": "  Uptime  " },
+    { "type": "shell",    "key": "  Shell   " },
+    { "type": "de",       "key": "  DE      " },
+    { "type": "terminal", "key": "  Term    " },
+    { "type": "cpu",      "key": "  CPU     " },
+    { "type": "memory",   "key": "  Memory  " },
+    "break",
+    { "type": "colors", "symbol": "block", "paddingLeft": 2 },
+    "break"
+  ]
 }
-ascii_distro="auto"
-image_backend="ascii"
-image_source="auto"
-ascii_bold="on"
-bold="on"
-colors=(2 2 1 3 4 5 6 7)
-color_blocks="on"
-block_width=3
-separator="  "
-cpu_brand="on"
-cpu_speed="on"
-memory_percent="on"
-memory_unit="mib"
-kernel_shorthand="on"
-distro_shorthand="off"
-os_arch="on"
-NEOFETCH_EOF
+FASTFETCH_EOF
 fi
 
 # ── Whiskermenu application name ─────────────────────────────────────────────
