@@ -1,6 +1,5 @@
 #!/bin/bash
-# VenomOS Stage 1 setup hook
-# Runs inside the chroot during ISO build.
+# VenomOS setup hook — runs inside the chroot during ISO build.
 set -e
 
 echo "[*] VenomOS: Running setup hook..."
@@ -71,9 +70,9 @@ cat > /etc/motd << 'EOF'
   \ V /| _|| .` | (_) | |\/| | (_) \__ \
    \_/ |___|_|\_|\___/|_|  |_|\___/|___/
 
-  Intelligence. Precision. Persistence.
-  Stage 1 — Base System
-  https://github.com/bogdanticu88/venomOS
+  VenomOS 1.0 — Intelligence. Precision. Persistence.
+  Run 'venom-help' to see available tools.
+  Run 'sudo venom-setup' to install all tools on first boot.
 
 EOF
 

@@ -1,0 +1,49 @@
+[window]
+padding        = { x = 12, y = 10 }
+decorations    = "full"
+opacity        = 0.95
+title          = "VenomOS Terminal"
+
+[font]
+normal = { family = "JetBrains Mono", style = "Regular" }
+bold   = { family = "JetBrains Mono", style = "Bold" }
+italic = { family = "JetBrains Mono", style = "Italic" }
+size   = 11.0
+
+[colors.primary]
+background = "#0d0d0d"
+foreground = "#e0e0e0"
+
+[colors.cursor]
+text   = "#0d0d0d"
+cursor = "#00ff41"
+
+[colors.selection]
+text       = "#e0e0e0"
+background = "#1a7f3c"
+
+[colors.normal]
+black   = "#1a1a1a"
+red     = "#cc0000"
+green   = "#00ff41"
+yellow  = "#ffcc00"
+blue    = "#4488ff"
+magenta = "#cc44cc"
+cyan    = "#00cccc"
+white   = "#cccccc"
+
+[colors.bright]
+black   = "#333333"
+red     = "#ff4444"
+green   = "#44ff88"
+yellow  = "#ffee55"
+blue    = "#66aaff"
+magenta = "#ee66ee"
+cyan    = "#44eeff"
+white   = "#ffffff"
+
+[scrolling]
+history = 10000
+
+[cursor]
+style = { shape = "Block", blinking = "On" }

@@ -1,0 +1,78 @@
+# VenomOS Plymouth boot splash
+
+Window.SetBackgroundTopColor(0.05, 0.05, 0.05);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+screen_width  = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+# ── ASCII logo rendered as label ────────────────────────────────────────────
+logo_lines = [
+    " __   _____ _  _  ___  __  __  ___  ___ ",
+    " \\ \\ / / __| \\| |/ _ \\|  \\/  |/ _ \\/ __|",
+    "  \\ V /| _|| .` | (_) | |\\/| | (_) \\__ \\",
+    "   \\_/ |___|_|\\_|\\___/|_|  |_|\\___/|___/"
+];
+
+line_height = 20;
+total_height = line_height * 4;
+start_y = (screen_height / 2) - (total_height / 2) - 60;
+
+for (i = 0; i < 4; i++) {
+    lbl = Sprite();
+    lbl.SetImage(Image.Text(logo_lines[i], 0.0, 1.0, 0.25));
+    lbl.SetX((screen_width - logo_lines[i].Length() * 8) / 2);
+    lbl.SetY(start_y + i * line_height);
+}
+
+# Tagline
+tagline = Sprite();
+tagline.SetImage(Image.Text("Intelligence. Precision. Persistence.", 0.6, 0.6, 0.6));
+tagline.SetX((screen_width - 38 * 8) / 2);
+tagline.SetY(start_y + 5 * line_height);
+
+# ── Progress bar ────────────────────────────────────────────────────────────
+BAR_WIDTH  = Math.Int(screen_width * 0.4);
+BAR_HEIGHT = 4;
+bar_x = (screen_width - BAR_WIDTH) / 2;
+bar_y = start_y + 8 * line_height;
+
+# Track background
+bar_bg = Sprite();
+bar_bg.SetImage(Image.Text(" ", 0.12, 0.12, 0.12));
+bar_bg.SetX(bar_x);
+bar_bg.SetY(bar_y);
+
+progress_fill = Sprite();
+progress_fill.SetX(bar_x);
+progress_fill.SetY(bar_y);
+
+fun draw_bar(progress) {
+    w = Math.Int(BAR_WIDTH * progress);
+    if (w < 1) { w = 1; }
+    img = Image(w, BAR_HEIGHT);
+    for (px = 0; px < w; px++) {
+        for (py = 0; py < BAR_HEIGHT; py++) {
+            img.SetPixel(px, py, 0.0, 1.0, 0.25, 1.0);
+        }
+    }
+    progress_fill.SetImage(img);
+}
+
+fun boot_progress_cb(duration, progress) {
+    draw_bar(progress);
+}
+
+Plymouth.SetBootProgressFunction(boot_progress_cb);
+draw_bar(0);
+
+# ── Status message ───────────────────────────────────────────────────────────
+status_sprite = Sprite();
+status_sprite.SetX(bar_x);
+status_sprite.SetY(bar_y + BAR_HEIGHT + 10);
+
+fun display_message_cb(text) {
+    status_sprite.SetImage(Image.Text(text, 0.5, 0.5, 0.5));
+}
+
+Plymouth.SetDisplayMessageFunction(display_message_cb);

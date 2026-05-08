@@ -20,8 +20,9 @@ chmod +x "$BIN_DIR"/* 2>/dev/null || true
 # shell — sudo's secure_path, XDG autostart, and non-interactive shells all
 # look there but won't pick up /opt/venomOS/bin from /etc/profile.d.
 mkdir -p /usr/local/bin
-for cmd in venom-setup venom-help venom-ai; do
+for cmd in venom-setup venom-help venom-ai venom-install; do
     if [ -f "$BIN_DIR/$cmd" ]; then
+        chmod +x "$BIN_DIR/$cmd"
         ln -sf "$BIN_DIR/$cmd" "/usr/local/bin/$cmd"
     fi
 done

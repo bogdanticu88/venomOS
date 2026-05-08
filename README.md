@@ -26,12 +26,14 @@ VenomOS is a Debian-based live operating system built for intelligence analysts,
 ## Features
 
 - **Live USB with encrypted persistence** — boot anywhere, leave nothing behind
-- **Intelligence core** — MISP, OpenCTI, YARA, Sigma rules, IOC management
-- **OSINT toolkit** — curated collection of recon, attribution, and visualization tools
-- **Offensive layer** — Metasploit, Nmap, Hashcat, Burp Suite CE, and more
-- **Local AI** — Ollama with analyst-tuned prompts, fully offline
+- **Intelligence core** — YARA, Sigma rules, chainsaw, Volatility3, IOC tooling
+- **OSINT toolkit** — 40+ tools: theHarvester, SpiderFoot, Sherlock, recon-ng, and more
+- **Offensive layer** — Nmap, Impacket, NetExec, Responder, Nuclei, EvilGinx2, and more
+- **Local AI** — `venom-ai` powered by Ollama (Mistral/Llama3), fully offline
+- **Heavy tools on demand** — `venom-install` for Metasploit, Sliver, Havoc, Caldera
 - **Hardened by default** — AppArmor, UFW, DNS-over-HTTPS, no telemetry
-- **Built on Debian Testing** — stable, trusted, community-driven
+- **Full VenomOS identity** — custom GRUB menu, Plymouth splash, LightDM login, XFCE theme
+- **Built on Debian Trixie** — stable, trusted, community-driven
 
 ---
 
@@ -60,11 +62,11 @@ The ISO will be output to `venomOS/output/`.
 
 | Stage | Status | Description |
 |-------|--------|-------------|
-| 1 | In Progress | Base system — Debian + XFCE + branding + hardening |
-| 2 | Planned | Intelligence core — OSINT + APT tracking tools |
-| 3 | Planned | Offensive layer — pentesting toolkit |
-| 4 | Planned | AI layer — Ollama + analyst prompts |
-| 5 | Planned | Polish + ISO release |
+| 1 | Done | Base system — Debian + XFCE + branding + hardening |
+| 2 | Done | Intelligence core — OSINT + APT tracking tools (40+ tools) |
+| 3 | Done | Offensive layer — full pentesting toolkit |
+| 4 | Done | AI layer — venom-ai, venom-install, Ollama + analyst prompts |
+| 5 | Done | Polish — full VenomOS identity, Plymouth/GRUB/LightDM theming |
 
 ---
 

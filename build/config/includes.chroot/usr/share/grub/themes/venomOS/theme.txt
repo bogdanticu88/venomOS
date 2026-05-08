@@ -1,0 +1,64 @@
+# VenomOS GRUB theme
+# Dark terminal-style theme with green highlights
+
+title-text: ""
+desktop-color: "#0d0d0d"
+desktop-image: ""
+
++ label {
+  top    = 12%
+  left   = 10%
+  width  = 80%
+  align  = "center"
+  id     = "__title__"
+  text   = "VenomOS — Intelligence. Precision. Persistence."
+  color  = "#00ff41"
+  font   = "Unifont Regular 16"
+}
+
++ label {
+  top    = 19%
+  left   = 10%
+  width  = 80%
+  align  = "center"
+  text   = "___________________________________________"
+  color  = "#1a7f3c"
+  font   = "Unifont Regular 10"
+}
+
++ boot_menu {
+  left            = 15%
+  width           = 70%
+  top             = 22%
+  height          = 58%
+  item_color              = "#888888"
+  selected_item_color     = "#00ff41"
+  item_height             = 28
+  item_padding            = 10
+  item_spacing            = 2
+  selected_item_pixmap_style = "selected_item_*.png"
+  item_font               = "Unifont Regular 14"
+}
+
++ label {
+  top    = 82%
+  left   = 10%
+  width  = 80%
+  align  = "center"
+  text   = "Use arrow keys to navigate. Enter to boot. e to edit."
+  color  = "#555555"
+  font   = "Unifont Regular 11"
+}
+
++ progress_bar {
+  id              = "__timeout__"
+  left            = 15%
+  width           = 70%
+  top             = 87%
+  height          = 4
+  fg_color        = "#00ff41"
+  bg_color        = "#1a1a1a"
+  border_color    = "#333333"
+  text_color      = "#00ff41"
+  text            = ""
+}

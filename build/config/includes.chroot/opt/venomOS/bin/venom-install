@@ -1,0 +1,245 @@
+#!/bin/bash
+# venom-install — heavy/optional tool installer for VenomOS
+# Usage: venom-install [ollama|metasploit|havoc|sliver|caldera|all]
+
+set -e
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}[-] Run as root: sudo venom-install${NC}"
+    exit 1
+fi
+
+TOOLS_BASE="/opt/venomOS/tools"
+BIN_DIR="/opt/venomOS/bin"
+LOG="/opt/venomOS/install.log"
+mkdir -p "$BIN_DIR"
+
+usage() {
+    echo ""
+    echo -e "${GREEN} __   _____ _  _  ___  __  __  ___  ___ ${NC}"
+    echo -e "${GREEN} \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|${NC}"
+    echo -e "${GREEN}  \ V /| _|| .\` | (_) | |\/| | (_) \__ \\${NC}"
+    echo -e "${GREEN}   \_/ |___|_|\_|\___/|_|  |_|\___/|___/${NC}"
+    echo ""
+    echo -e "${BOLD}  venom-install — VenomOS heavy tool installer${NC}"
+    echo ""
+    echo "  Usage: sudo venom-install <tool>"
+    echo ""
+    echo "  Tools:"
+    printf "  ${GREEN}%-14s${NC} %s\n" "ollama"      "Local AI engine — runs Mistral/Llama3 fully offline"
+    printf "  ${GREEN}%-14s${NC} %s\n" "metasploit"  "Rapid7 Metasploit Framework (~2 GB, Rapid7 APT repo)"
+    printf "  ${GREEN}%-14s${NC} %s\n" "havoc"       "HavocFramework C2 — build from source"
+    printf "  ${GREEN}%-14s${NC} %s\n" "sliver"      "BishopFox Sliver C2 — pre-built release binary"
+    printf "  ${GREEN}%-14s${NC} %s\n" "caldera"     "MITRE Caldera adversary emulation platform"
+    printf "  ${GREEN}%-14s${NC} %s\n" "all"         "Install all of the above"
+    echo ""
+}
+
+_ok()   { echo -e "  ${GREEN}[+]${NC} $*"; }
+_fail() { echo -e "  ${RED}[-]${NC} $*"; }
+_skip() { echo -e "  ${YELLOW}[skip]${NC} $*"; }
+_step() { printf "  ${CYAN}[*]${NC} %-40s" "$*"; }
+
+# ── Ollama ──────────────────────────────────────────────────────────────────
+install_ollama() {
+    echo -e "\n${BOLD}[ollama] Installing Ollama local AI engine...${NC}"
+
+    if command -v ollama &>/dev/null; then
+        _skip "Ollama already installed ($(ollama --version 2>/dev/null | head -1))"
+    else
+        _step "Downloading and installing Ollama"
+        if curl -fsSL https://ollama.com/install.sh | sh >> "$LOG" 2>&1; then
+            echo -e "${GREEN}done${NC}"
+        else
+            echo -e "${RED}failed — check $LOG${NC}"; return 1
+        fi
+    fi
+
+    echo -e "\n  Pulling default models (mistral ~4 GB, llama3 ~4 GB)..."
+    echo -e "  ${YELLOW}This will take a while on first run.${NC}"
+
+    for model in mistral llama3; do
+        _step "ollama pull $model"
+        if ollama list 2>/dev/null | grep -q "^$model"; then
+            echo -e "${YELLOW}already pulled${NC}"
+        else
+            if ollama pull "$model" >> "$LOG" 2>&1; then
+                echo -e "${GREEN}done${NC}"
+            else
+                echo -e "${RED}failed${NC}"
+            fi
+        fi
+    done
+
+    _ok "Ollama ready — run: venom-ai <query>"
+}
+
+# ── Metasploit ───────────────────────────────────────────────────────────────
+install_metasploit() {
+    echo -e "\n${BOLD}[metasploit] Installing Metasploit Framework...${NC}"
+
+    if command -v msfconsole &>/dev/null; then
+        _skip "Metasploit already installed"
+        return
+    fi
+
+    _step "Adding Rapid7 APT repository"
+    curl -fsSL https://apt.metasploit.com/metasploit-framework.gpg.key \
+        | gpg --dearmor -o /usr/share/keyrings/metasploit-framework.gpg >> "$LOG" 2>&1
+    echo "deb [signed-by=/usr/share/keyrings/metasploit-framework.gpg] \
+https://apt.metasploit.com/ focal main" \
+        > /etc/apt/sources.list.d/metasploit.list
+    echo -e "${GREEN}done${NC}"
+
+    _step "Installing metasploit-framework (~2 GB)"
+    if apt-get update -qq >> "$LOG" 2>&1 && \
+       apt-get install -y metasploit-framework >> "$LOG" 2>&1; then
+        echo -e "${GREEN}done${NC}"
+        _ok "Metasploit installed — run: msfconsole"
+    else
+        echo -e "${RED}failed — check $LOG${NC}"
+    fi
+}
+
+# ── Havoc ────────────────────────────────────────────────────────────────────
+install_havoc() {
+    echo -e "\n${BOLD}[havoc] Building Havoc C2 from source...${NC}"
+    local dest="$TOOLS_BASE/offensive/havoc"
+
+    if [ -f "$dest/Teamserver/teamserver" ]; then
+        _skip "Havoc already built"
+        return
+    fi
+
+    _step "Installing build dependencies"
+    apt-get install -y -qq \
+        golang-go nasm mingw-w64 python3-dev \
+        libssl-dev libffi-dev libboost-all-dev >> "$LOG" 2>&1
+    echo -e "${GREEN}done${NC}"
+
+    if [ ! -d "$dest/.git" ]; then
+        _step "Cloning HavocFramework/Havoc"
+        git clone --depth=1 https://github.com/HavocFramework/Havoc "$dest" >> "$LOG" 2>&1
+        echo -e "${GREEN}done${NC}"
+    fi
+
+    _step "Building teamserver"
+    if cd "$dest/teamserver" && go mod download >> "$LOG" 2>&1 && \
+       go build -o ../Teamserver/teamserver . >> "$LOG" 2>&1; then
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${RED}failed — check $LOG${NC}"; return 1
+    fi
+
+    cat > "$BIN_DIR/havoc-server" << 'EOF'
+#!/bin/bash
+exec /opt/venomOS/tools/offensive/havoc/Teamserver/teamserver "$@"
+EOF
+    chmod +x "$BIN_DIR/havoc-server"
+    ln -sf "$BIN_DIR/havoc-server" /usr/local/bin/havoc-server
+    _ok "Havoc built — run: havoc-server"
+}
+
+# ── Sliver ───────────────────────────────────────────────────────────────────
+install_sliver() {
+    echo -e "\n${BOLD}[sliver] Installing BishopFox Sliver C2...${NC}"
+
+    if [ -f "$BIN_DIR/sliver-server" ]; then
+        _skip "Sliver already installed"
+        return
+    fi
+
+    local ver
+    ver=$(curl -s https://api.github.com/repos/BishopFox/sliver/releases/latest \
+        | grep '"tag_name"' | cut -d'"' -f4)
+
+    _step "Downloading sliver-server $ver"
+    if curl -sL "https://github.com/BishopFox/sliver/releases/download/${ver}/sliver-server_linux" \
+            -o "$BIN_DIR/sliver-server" >> "$LOG" 2>&1; then
+        chmod +x "$BIN_DIR/sliver-server"
+        ln -sf "$BIN_DIR/sliver-server" /usr/local/bin/sliver-server
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${RED}failed${NC}"
+    fi
+
+    _step "Downloading sliver-client $ver"
+    if curl -sL "https://github.com/BishopFox/sliver/releases/download/${ver}/sliver-client_linux" \
+            -o "$BIN_DIR/sliver-client" >> "$LOG" 2>&1; then
+        chmod +x "$BIN_DIR/sliver-client"
+        ln -sf "$BIN_DIR/sliver-client" /usr/local/bin/sliver
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${RED}failed${NC}"
+    fi
+
+    _ok "Sliver ready — run: sliver-server (daemon), sliver (client)"
+}
+
+# ── Caldera ──────────────────────────────────────────────────────────────────
+install_caldera() {
+    echo -e "\n${BOLD}[caldera] Setting up MITRE Caldera...${NC}"
+    local dest="$TOOLS_BASE/attribution/caldera"
+
+    if [ -f "$dest/.caldera-ready" ]; then
+        _skip "Caldera already configured"
+        return
+    fi
+
+    if [ ! -d "$dest/.git" ]; then
+        _step "Cloning mitre/caldera"
+        git clone --depth=1 --recursive \
+            https://github.com/mitre/caldera "$dest" >> "$LOG" 2>&1
+        echo -e "${GREEN}done${NC}"
+    fi
+
+    _step "Installing Python dependencies"
+    if python3 -m venv "$dest/.venv" >> "$LOG" 2>&1 && \
+       "$dest/.venv/bin/pip" install --quiet -r "$dest/requirements.txt" >> "$LOG" 2>&1; then
+        echo -e "${GREEN}done${NC}"
+    else
+        echo -e "${RED}failed — check $LOG${NC}"; return 1
+    fi
+
+    cat > "$BIN_DIR/caldera" << 'WRAPPER'
+#!/bin/bash
+cd /opt/venomOS/tools/attribution/caldera
+exec .venv/bin/python server.py "$@"
+WRAPPER
+    chmod +x "$BIN_DIR/caldera"
+    ln -sf "$BIN_DIR/caldera" /usr/local/bin/caldera
+    touch "$dest/.caldera-ready"
+    _ok "Caldera ready — run: caldera --help"
+}
+
+# ── Dispatch ─────────────────────────────────────────────────────────────────
+case "${1:-}" in
+    ollama)     install_ollama ;;
+    metasploit) install_metasploit ;;
+    havoc)      install_havoc ;;
+    sliver)     install_sliver ;;
+    caldera)    install_caldera ;;
+    all)
+        install_ollama
+        install_metasploit
+        install_sliver
+        install_caldera
+        install_havoc
+        ;;
+    ""|-h|--help|help) usage; exit 0 ;;
+    *)
+        echo -e "${RED}[-] Unknown tool: $1${NC}"
+        usage; exit 1
+        ;;
+esac
+
+echo ""
+echo -e "${GREEN}[+] Done. Run 'venom-help' for the full tool list.${NC}"
+echo ""

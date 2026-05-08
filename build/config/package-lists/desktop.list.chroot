@@ -64,3 +64,11 @@ firefox-esr
 
 # PDF viewer
 evince
+
+# Branding and visual tools
+imagemagick
+neofetch
+
+# Plymouth boot splash
+plymouth
+plymouth-themes

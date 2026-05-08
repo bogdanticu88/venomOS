@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfwm4" version="1.0">
+  <property name="general" type="empty">
+    <property name="theme"                type="string" value="Arc-Dark"/>
+    <property name="title_font"           type="string" value="JetBrains Mono Bold 9"/>
+    <property name="button_layout"        type="string" value="O|HMC"/>
+    <property name="borderless_maximize"  type="bool"   value="true"/>
+    <property name="box_move"             type="bool"   value="false"/>
+    <property name="box_resize"           type="bool"   value="false"/>
+    <property name="click_to_focus"       type="bool"   value="true"/>
+    <property name="focus_delay"          type="int"    value="250"/>
+    <property name="raise_on_focus"       type="bool"   value="false"/>
+    <property name="snap_to_border"       type="bool"   value="true"/>
+    <property name="snap_to_windows"      type="bool"   value="true"/>
+    <property name="snap_width"           type="int"    value="10"/>
+    <property name="wrap_workspaces"      type="bool"   value="false"/>
+    <property name="workspace_count"      type="int"    value="2"/>
+  </property>
+</channel>

@@ -19,7 +19,7 @@ t() { printf "  ${GREEN}%-20s${NC} %s\n" "$1" "$2"; }
 
 s "SETUP"
 t "venom-setup"    "install all tools from GitHub (run once after boot)"
-t "venom-install"  "install heavy tools (Havoc, Sliver, Caldera)"
+t "venom-install"  "ollama | metasploit | havoc | sliver | caldera | all"
 
 s "RECON & OSINT"
 t "theharvester"   "emails, subdomains, IPs from public sources"
