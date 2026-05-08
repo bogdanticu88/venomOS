@@ -13,7 +13,7 @@ echo "[*] Staging build config to $BUILD_DIR (container filesystem)..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cp -a "$BUILD_SRC/auto" "$BUILD_DIR/"
-rsync -a --exclude='includes.chroot/opt/venomOS/tools' "$BUILD_SRC/config/" "$BUILD_DIR/config/"
+rsync -a --exclude='includes.chroot/opt/venomOS/tools' --exclude='bootloaders' "$BUILD_SRC/config/" "$BUILD_DIR/config/"
 
 cd "$BUILD_DIR"
 echo "[*] Working directory: $(pwd)"
