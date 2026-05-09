@@ -1,0 +1,226 @@
+#!/bin/bash
+# venom-vm — VM orchestration for VenomOS
+# Manages isolated QEMU VMs for different operational contexts
+
+GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
+
+VM_DIR="/opt/venomOS/vms"
+ISO_DIR="/opt/venomOS/isos"
+LOG="/opt/venomOS/vm.log"
+mkdir -p "$VM_DIR" "$ISO_DIR"
+
+# VM definitions — name:ram:cpu:network:description
+declare -A VM_RAM=([pentest]=4096 [osint]=2048 [malware]=2048 [vault]=1024)
+declare -A VM_CPU=([pentest]=2    [osint]=2     [malware]=2     [vault]=1)
+declare -A VM_NET=(
+    [pentest]="user"
+    [osint]="tor"
+    [malware]="none"
+    [vault]="none"
+)
+declare -A VM_DESC=(
+    [pentest]="Offensive tools — direct network"
+    [osint]="Browser + OSINT — routed through Tor"
+    [malware]="Analysis sandbox — no network"
+    [vault]="Air-gapped — sensitive data only"
+)
+
+usage() {
+    echo ""
+    echo -e "${BOLD}venom-vm — VenomOS VM orchestrator${NC}"
+    echo ""
+    echo "  Usage: venom-vm <command> <vm>"
+    echo ""
+    echo "  Commands:"
+    printf "  ${GREEN}%-12s${NC} %s\n" "start"    "start a VM (creates disk if needed)"
+    printf "  ${GREEN}%-12s${NC} %s\n" "stop"     "gracefully shut down a VM"
+    printf "  ${GREEN}%-12s${NC} %s\n" "kill"     "force stop a VM"
+    printf "  ${GREEN}%-12s${NC} %s\n" "attach"   "attach terminal to running VM"
+    printf "  ${GREEN}%-12s${NC} %s\n" "list"     "show all VMs and status"
+    printf "  ${GREEN}%-12s${NC} %s\n" "snapshot" "snapshot <vm> [name]"
+    printf "  ${GREEN}%-12s${NC} %s\n" "restore"  "restore <vm> [snapshot]"
+    printf "  ${GREEN}%-12s${NC} %s\n" "reset"    "restore VM to clean state"
+    printf "  ${GREEN}%-12s${NC} %s\n" "info"     "show VM details"
+    echo ""
+    echo "  VMs:"
+    for vm in pentest osint malware vault; do
+        printf "  ${CYAN}%-12s${NC} %s\n" "$vm" "${VM_DESC[$vm]}"
+    done
+    echo ""
+}
+
+vm_exists() { [ -n "${VM_RAM[$1]}" ]; }
+
+vm_running() {
+    [ -f "$VM_DIR/$1.pid" ] && kill -0 "$(cat "$VM_DIR/$1.pid")" 2>/dev/null
+}
+
+get_netdev() {
+    local vm="$1"
+    case "${VM_NET[$vm]}" in
+        user)
+            echo "-netdev user,id=net0 -device virtio-net-pci,netdev=net0"
+            ;;
+        tor)
+            # Route through sys-tor if running, else direct user networking
+            echo "-netdev user,id=net0,net=10.0.3.0/24,restrict=off -device virtio-net-pci,netdev=net0"
+            ;;
+        none)
+            echo "-nic none"
+            ;;
+    esac
+}
+
+cmd_start() {
+    local vm="$1"
+    vm_exists "$vm" || { echo -e "${RED}[-] Unknown VM: $vm${NC}"; usage; exit 1; }
+
+    if vm_running "$vm"; then
+        echo -e "${YELLOW}[!] $vm is already running (PID $(cat "$VM_DIR/$vm.pid"))${NC}"
+        return
+    fi
+
+    local disk="$VM_DIR/$vm.qcow2"
+    local snap_base="$VM_DIR/$vm-base.qcow2"
+
+    # Create base disk if it doesn't exist
+    if [ ! -f "$disk" ]; then
+        echo -e "  ${CYAN}[*]${NC} Creating disk for $vm (20G)..."
+        qemu-img create -f qcow2 "$disk" 20G >> "$LOG" 2>&1
+
+        # If we have a base snapshot, create a linked clone
+        if [ -f "$snap_base" ]; then
+            qemu-img create -f qcow2 -b "$snap_base" -F qcow2 "$disk" >> "$LOG" 2>&1
+        fi
+    fi
+
+    local netdev
+    netdev=$(get_netdev "$vm")
+
+    # Determine display — gui for osint, serial console for others
+    local display_opts
+    if [ "$vm" = "osint" ]; then
+        display_opts="-display gtk,zoom-to-fit=on -vga virtio"
+    else
+        display_opts="-display none -serial mon:stdio"
+    fi
+
+    echo -e "  ${GREEN}[+]${NC} Starting $vm — ${VM_DESC[$vm]}"
+
+    if [ "$vm" = "osint" ]; then
+        # GUI VM — launch in background
+        qemu-system-x86_64 \
+            -enable-kvm \
+            -m "${VM_RAM[$vm]}" \
+            -smp "${VM_CPU[$vm]}" \
+            -drive if=virtio,format=qcow2,file="$disk" \
+            $netdev \
+            $display_opts \
+            -daemonize \
+            -pidfile "$VM_DIR/$vm.pid" \
+            >> "$LOG" 2>&1
+        echo -e "  ${GREEN}[+]${NC} $vm window opened"
+    else
+        # Headless VM — attach via serial
+        qemu-system-x86_64 \
+            -enable-kvm \
+            -m "${VM_RAM[$vm]}" \
+            -smp "${VM_CPU[$vm]}" \
+            -drive if=virtio,format=qcow2,file="$disk" \
+            $netdev \
+            -display none \
+            -serial unix:"$VM_DIR/$vm.sock",server,nowait \
+            -daemonize \
+            -pidfile "$VM_DIR/$vm.pid" \
+            >> "$LOG" 2>&1
+        echo -e "  ${CYAN}[*]${NC} Attach with: venom-vm attach $vm"
+    fi
+}
+
+cmd_stop() {
+    local vm="$1"
+    vm_running "$vm" || { echo -e "${YELLOW}[!] $vm is not running${NC}"; return; }
+    echo -e "  ${CYAN}[*]${NC} Stopping $vm..."
+    kill -TERM "$(cat "$VM_DIR/$vm.pid")" 2>/dev/null
+    rm -f "$VM_DIR/$vm.pid"
+    echo -e "  ${GREEN}[+]${NC} $vm stopped"
+}
+
+cmd_kill() {
+    local vm="$1"
+    [ -f "$VM_DIR/$vm.pid" ] && kill -9 "$(cat "$VM_DIR/$vm.pid")" 2>/dev/null
+    rm -f "$VM_DIR/$vm.pid"
+    echo -e "  ${GREEN}[+]${NC} $vm killed"
+}
+
+cmd_attach() {
+    local vm="$1"
+    vm_running "$vm" || { echo -e "${RED}[-] $vm is not running${NC}"; return; }
+    [ "$vm" = "osint" ] && { echo -e "${YELLOW}[!] osint-vm has its own window${NC}"; return; }
+    echo -e "  ${CYAN}[*]${NC} Attaching to $vm (Ctrl+] to detach)..."
+    socat -,rawer,escape=0x1d "UNIX-CONNECT:$VM_DIR/$vm.sock"
+}
+
+cmd_list() {
+    echo ""
+    printf "  ${BOLD}%-12s %-10s %-8s %-8s %s${NC}\n" "VM" "STATUS" "RAM" "CPU" "NETWORK"
+    echo "  ─────────────────────────────────────────────"
+    for vm in pentest osint malware vault; do
+        if vm_running "$vm"; then
+            status="${GREEN}running${NC}"
+        elif [ -f "$VM_DIR/$vm.qcow2" ]; then
+            status="${YELLOW}stopped${NC}"
+        else
+            status="not created"
+        fi
+        printf "  ${CYAN}%-12s${NC} " "$vm"
+        echo -e "${status}$(printf ' %.0s' {1..3})${VM_RAM[$vm]}M   ${VM_CPU[$vm]}     ${VM_NET[$vm]}"
+    done
+    echo ""
+}
+
+cmd_snapshot() {
+    local vm="$1" name="${2:-$(date +%Y%m%d-%H%M%S)}"
+    local disk="$VM_DIR/$vm.qcow2"
+    [ -f "$disk" ] || { echo -e "${RED}[-] No disk for $vm${NC}"; exit 1; }
+    echo -e "  ${CYAN}[*]${NC} Snapshotting $vm as '$name'..."
+    qemu-img snapshot -c "$name" "$disk"
+    echo -e "  ${GREEN}[+]${NC} Snapshot '$name' created"
+}
+
+cmd_restore() {
+    local vm="$1" name="${2:-}"
+    local disk="$VM_DIR/$vm.qcow2"
+    vm_running "$vm" && cmd_stop "$vm"
+    if [ -z "$name" ]; then
+        echo "Available snapshots:"
+        qemu-img snapshot -l "$disk" 2>/dev/null
+        return
+    fi
+    echo -e "  ${CYAN}[*]${NC} Restoring $vm to '$name'..."
+    qemu-img snapshot -a "$name" "$disk"
+    echo -e "  ${GREEN}[+]${NC} Restored"
+}
+
+cmd_reset() {
+    local vm="$1"
+    vm_running "$vm" && cmd_kill "$vm"
+    rm -f "$VM_DIR/$vm.qcow2"
+    echo -e "  ${GREEN}[+]${NC} $vm disk cleared — will rebuild on next start"
+}
+
+# ── Dispatch ─────────────────────────────────────────────────────────────────
+case "${1:-}" in
+    start)    cmd_start    "${2:-}" ;;
+    stop)     cmd_stop     "${2:-}" ;;
+    kill)     cmd_kill     "${2:-}" ;;
+    attach)   cmd_attach   "${2:-}" ;;
+    list)     cmd_list ;;
+    snapshot) cmd_snapshot "${2:-}" "${3:-}" ;;
+    restore)  cmd_restore  "${2:-}" "${3:-}" ;;
+    reset)    cmd_reset    "${2:-}" ;;
+    info)     cmd_list ;;
+    ""|-h|--help) usage ;;
+    *) echo -e "${RED}[-] Unknown command: $1${NC}"; usage; exit 1 ;;
+esac

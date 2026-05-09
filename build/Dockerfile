@@ -1,26 +1,24 @@
-FROM debian:trixie-slim
+FROM archlinux:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    live-build \
-    debootstrap \
-    squashfs-tools \
-    xorriso \
-    isolinux \
-    syslinux-common \
-    grub-pc-bin \
-    grub-efi-amd64-bin \
-    grub-efi-amd64-signed \
-    shim-signed \
-    mtools \
-    dosfstools \
+RUN pacman -Sy --noconfirm \
+    archiso \
+    git \
     curl \
     wget \
-    git \
     rsync \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    squashfs-tools \
+    dosfstools \
+    mtools \
+    libisoburn \
+    efibootmgr \
+    grub \
+    && pacman -Scc --noconfirm
+
+# Add BlackArch repo
+RUN curl -O https://blackarch.org/strap.sh && \
+    chmod +x strap.sh && \
+    echo "y" | bash strap.sh || true && \
+    rm -f strap.sh
 
 WORKDIR /venomOS/build
 

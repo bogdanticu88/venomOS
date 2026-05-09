@@ -1,4 +1,0 @@
-#!/bin/bash
-# Go/Rust binaries are downloaded at first boot via venom-setup.
-# This hook is intentionally a no-op.
-echo "[*] Binary tools will be installed at first boot via venom-setup."

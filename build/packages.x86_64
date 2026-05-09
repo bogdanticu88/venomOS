@@ -1,0 +1,197 @@
+# VenomOS package list — Arch + BlackArch
+# This file is read by archiso to populate the live ISO
+
+# ── Base system ───────────────────────────────────────────────────────────────
+base
+base-devel
+linux
+linux-firmware
+linux-headers
+mkinitcpio
+mkinitcpio-archiso
+
+# ── Boot ─────────────────────────────────────────────────────────────────────
+grub
+efibootmgr
+syslinux
+dosfstools
+mtools
+
+# ── Init / services ───────────────────────────────────────────────────────────
+systemd
+systemd-sysvcompat
+dbus
+
+# ── Network ───────────────────────────────────────────────────────────────────
+networkmanager
+network-manager-applet
+iproute2
+iputils
+net-tools
+bind
+curl
+wget
+whois
+nmap
+openvpn
+wireguard-tools
+tor
+torsocks
+proxychains-ng
+macchanger
+dnscrypt-proxy
+iwd
+
+# ── Shell and terminal ────────────────────────────────────────────────────────
+zsh
+zsh-completions
+zsh-autosuggestions
+zsh-syntax-highlighting
+tmux
+bash
+vim
+neovim
+nano
+less
+man-db
+man-pages
+
+# ── Core utilities ────────────────────────────────────────────────────────────
+git
+curl
+wget
+rsync
+unzip
+zip
+p7zip
+tar
+file
+tree
+htop
+btop
+lsof
+strace
+ltrace
+binutils
+hexedit
+xxd
+jq
+yq
+fzf
+ripgrep
+fd
+bat
+eza
+sd
+
+# ── Python ────────────────────────────────────────────────────────────────────
+python
+python-pip
+python-virtualenv
+python-requests
+python-beautifulsoup4
+python-lxml
+python-pycryptodome
+python-scapy
+ipython
+
+# ── Go ────────────────────────────────────────────────────────────────────────
+go
+
+# ── Ruby ──────────────────────────────────────────────────────────────────────
+ruby
+
+# ── Node ──────────────────────────────────────────────────────────────────────
+nodejs
+npm
+
+# ── Containers / virtualisation ───────────────────────────────────────────────
+docker
+docker-compose
+qemu-full
+libvirt
+virt-manager
+
+# ── Security hardening ────────────────────────────────────────────────────────
+apparmor
+ufw
+fail2ban
+aide
+rkhunter
+lynis
+
+# ── Crypto / privacy ─────────────────────────────────────────────────────────
+gnupg
+openssl
+keepassxc
+veracrypt
+
+# ── Forensics ────────────────────────────────────────────────────────────────
+sleuthkit
+autopsy
+foremost
+scalpel
+testdisk
+photorec
+dc3dd
+ddrescue
+
+# ── Network analysis ─────────────────────────────────────────────────────────
+wireshark-cli
+tcpdump
+tshark
+netcat
+ncat
+socat
+ettercap
+bettercap
+aircrack-ng
+kismet
+masscan
+hping3
+mtr
+traceroute
+
+# ── Web / OSINT ───────────────────────────────────────────────────────────────
+w3m
+lynx
+sqlmap
+nikto
+dirb
+wfuzz
+ffuf
+nuclei
+
+# ── Password / credential ─────────────────────────────────────────────────────
+hashcat
+john
+hydra
+medusa
+crunch
+wordlistctl
+
+# ── Exploitation ─────────────────────────────────────────────────────────────
+metasploit
+exploitdb
+
+# ── Reverse engineering ───────────────────────────────────────────────────────
+radare2
+ghidra
+gdb
+pwndbg
+yara
+
+# ── Malware analysis ─────────────────────────────────────────────────────────
+clamav
+chkrootkit
+
+# ── Misc tools ────────────────────────────────────────────────────────────────
+fastfetch
+figlet
+toilet
+imagemagick
+openssh
+screen
+expect
+tcl
+tk

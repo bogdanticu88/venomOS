@@ -1,7 +1,7 @@
 # VenomOS
 
 ```
- __   _____ _  _  ___  __  __  ___  ___ 
+ __   _____ _  _  ___  __  __  ___  ___
  \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|
   \ V /| _|| .` | (_) | |\/| | (_) \__ \
    \_/ |___|_|\_|\___/|_|  |_|\___/|___/
@@ -9,85 +9,98 @@
 
 **Intelligence. Precision. Persistence.**
 
-VenomOS is a Debian-based live operating system built for intelligence analysts, security researchers, and APT trackers. It combines OSINT tooling, offensive security capabilities, and locally-run AI into a single, privacy-first platform.
+VenomOS is a stealth-first, offensive-capable live OS built for threat intelligence
+analysts, OSINT investigators, and red team operators. Built on Arch Linux with the
+BlackArch tool repository — minimal, fast, rolling, and yours.
 
 ---
 
-## Who Is This For
+## Architecture
 
-- Cyber intelligence analysts
-- APT researchers and threat hunters
-- OSINT investigators
-- Penetration testers
-- Security researchers who need an air-gap capable, privacy-respecting environment
+```
+VenomOS (Arch base — CLI only, boots to TTY)
+│
+├── venom-vm          VM orchestration layer
+│   ├── pentest-vm    offensive tools, isolated network
+│   ├── osint-vm      browser + OSINT, routed through Tor
+│   ├── malware-vm    isolated analysis, no network
+│   └── vault-vm      air-gapped, sensitive data only
+│
+├── venom-setup       first-boot tool installer
+├── venom-help        tool reference
+└── venom-install     heavy tools on demand
+```
 
----
+## Design Principles
 
-## Features
+- **Stealth first** — RAM-only by default, MAC randomization, Tor routing, no traces
+- **CLI native** — boots to TTY, tmux as the desktop, no display server on host
+- **VM isolated** — each task in its own QEMU VM, separate network paths
+- **Persistence optional** — explicit opt-in, encrypted, on USB only
+- **Your tools** — built around custom tooling, not repackaged Kali
 
-- **Live USB with encrypted persistence** — boot anywhere, leave nothing behind
-- **Intelligence core** — YARA, Sigma rules, chainsaw, Volatility3, IOC tooling
-- **OSINT toolkit** — 40+ tools: theHarvester, SpiderFoot, Sherlock, recon-ng, and more
-- **Offensive layer** — Nmap, Impacket, NetExec, Responder, Nuclei, EvilGinx2, and more
-- **Local AI** — `venom-ai` powered by Ollama (Mistral/Llama3), fully offline
-- **Heavy tools on demand** — `venom-install` for Metasploit, Sliver, Havoc, Caldera
-- **Hardened by default** — AppArmor, UFW, DNS-over-HTTPS, no telemetry
-- **Full VenomOS identity** — custom GRUB menu, Plymouth splash, LightDM login, XFCE theme
-- **Built on Debian Trixie** — stable, trusted, community-driven
+## Base
 
----
+- **Arch Linux** — minimal, rolling, nothing you didn't put there
+- **BlackArch repo** — 2800+ security tools as native pacman packages
+- **archiso** — clean reproducible ISO builds
 
-## Build Requirements
+## Stealth Layer
 
-- Docker Desktop (WSL2 backend) or a Linux host
-- ~20GB free disk space
-- WSL2 (Ubuntu or Debian) recommended on Windows
+- MAC address randomization on every boot
+- Tor as default gateway for OSINT/anonymous VMs
+- DNS-over-HTTPS only
+- RAM wipe on shutdown
+- No swap, no logs persisted by default
+- Timestomping tools built in
 
-## Quick Build
+## Tool Categories
+
+| Category | Source |
+|----------|--------|
+| Recon & OSINT | BlackArch repo + venom-setup |
+| Offensive | BlackArch repo + venom-setup |
+| Malware Analysis | BlackArch repo + venom-setup |
+| Threat Intel | venom-setup (custom tools) |
+| Network | BlackArch repo |
+| Forensics | BlackArch repo |
+
+## Custom Tools
+
+Personal tooling cloned at first boot:
+
+- **ApexHunter** — threat hunting playbooks
+- **SCARABEO** — malware analysis framework  
+- **RogueDetect** — rogue device detection
+- **ERIS Intelligence** — threat intelligence
+- **AuthBridge** — authentication analysis
+- **ReqReaper** — API security testing
+- **ThreatMap** — MITRE ATT&CK mapping
+
+## Build
 
 ```bash
-# Clone the repo
+# Requires Docker with WSL2 backend (Windows) or Linux host
 git clone https://github.com/bogdanticu88/venomOS
 cd venomOS/build
-
-# Build the ISO (runs inside Docker)
 bash run-build.sh
 ```
 
-The ISO will be output to `venomOS/output/`.
+ISO output: `venomOS/output/venomos-x86_64.iso`
 
----
+## Persistent USB
 
-## Stages
+```bash
+# Flash ISO
+dd if=output/venomos-x86_64.iso of=/dev/sdX bs=4M status=progress conv=fsync
 
-| Stage | Status | Description |
-|-------|--------|-------------|
-| 1 | Done | Base system — Debian + XFCE + branding + hardening |
-| 2 | Done | Intelligence core — OSINT + APT tracking tools (40+ tools) |
-| 3 | Done | Offensive layer — full pentesting toolkit |
-| 4 | Done | AI layer — venom-ai, venom-install, Ollama + analyst prompts |
-| 5 | Done | Polish — full VenomOS identity, Plymouth/GRUB/LightDM theming |
-
----
-
-## Project Structure
-
-```
-venomOS/
-  build/          live-build configs and Docker build system
-  tools/          OSINT and security tool collection
-  ai/             Ollama configs and analyst prompts
-  hardening/      AppArmor profiles and system hardening
-  themes/         Visual branding assets
-  docs/           Documentation
-  output/         Built ISO files (gitignored)
+# Create persistence partition (remaining space on USB)
+# Label it 'persistence' — VenomOS picks it up automatically on boot
 ```
 
----
+## Legacy
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to submit tools, report issues, or improve the build system.
+Debian-based build archived at: `legacy/debian-base`
 
 ---
 

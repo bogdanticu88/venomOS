@@ -1,0 +1,80 @@
+#!/bin/bash
+GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'
+YELLOW='\033[0;33m'; BOLD='\033[1m'; NC='\033[0m'
+SETUP_FLAG="/opt/venomOS/.setup-complete"
+
+echo ""
+echo -e "${GREEN} __   _____ _  _  ___  __  __  ___  ___ ${NC}"
+echo -e "${GREEN} \ \ / / __| \| |/ _ \|  \/  |/ _ \/ __|${NC}"
+echo -e "${GREEN}  \ V /| _|| .\` | (_) | |\/| | (_) \__ \\${NC}"
+echo -e "${GREEN}   \_/ |___|_|\_|\___/|_|  |_|\___/|___/${NC}"
+echo -e "\n${BOLD}  Intelligence. Precision. Persistence.${NC}\n"
+
+[ ! -f "$SETUP_FLAG" ] && \
+    echo -e "  ${RED}[!] Tools not installed. Run: sudo venom-setup${NC}\n"
+
+s() { echo -e "\n${CYAN}[$1]${NC}"; }
+t() { printf "  ${GREEN}%-20s${NC} %s\n" "$1" "$2"; }
+
+s "SETUP"
+t "venom-setup"    "clone and install personal tools (run once)"
+t "venom-install"  "ollama | metasploit | havoc | sliver | caldera | all"
+t "venom-vm"       "start | stop | attach | list | snapshot <vm>"
+
+s "VMs"
+t "pentest-vm"     "offensive tools — isolated network"
+t "osint-vm"       "browser + OSINT — routed through Tor"
+t "malware-vm"     "analysis sandbox — no network"
+t "vault-vm"       "air-gapped — sensitive data only"
+
+s "RECON & OSINT"
+t "theharvester"   "emails, subdomains, IPs"
+t "recon-ng"       "modular recon framework"
+t "spiderfoot"     "automated OSINT — 100+ sources"
+t "sherlock"       "username search — 400+ platforms"
+t "amass"          "subdomain enumeration"
+t "nuclei"         "vulnerability scanner — 9000+ templates"
+t "ffuf"           "web fuzzer"
+t "katana"         "web crawler"
+t "feroxbuster"    "content discovery"
+
+s "THREAT INTEL (personal tools)"
+t "apexhunter"     "threat hunting playbooks"
+t "threatmap"      "MITRE ATT&CK / STRIDE modeler"
+t "scarabeo"       "malware analysis framework"
+t "roguedetect"    "rogue device detection"
+
+s "OFFENSIVE"
+t "metasploit"     "full MSF (venom-install metasploit)"
+t "netexec"        "SMB/WinRM/LDAP Windows pentesting"
+t "impacket"       "Python Windows protocol suite"
+t "responder"      "LLMNR/NBT-NS poisoner"
+t "kerbrute"       "Kerberos enum and bruteforce"
+t "evilginx2"      "reverse proxy — MFA bypass"
+t "havoc"          "C2 framework (venom-install havoc)"
+t "sliver"         "C2 framework (venom-install sliver)"
+t "sqlmap"         "SQL injection"
+t "hashcat"        "GPU password cracking"
+t "hydra"          "online bruteforce"
+
+s "NETWORK"
+t "nmap"           "network scanner"
+t "masscan"        "fast port scanner"
+t "wireshark"      "packet analysis (osint-vm)"
+t "bettercap"      "MITM toolkit"
+t "aircrack-ng"    "wireless security"
+
+s "FORENSICS / MALWARE"
+t "vol"            "Volatility3 — memory forensics"
+t "r2"             "Radare2 — reverse engineering"
+t "ghidra"         "NSA reverse engineering suite"
+t "yara"           "pattern matching"
+t "chainsaw"       "Sigma scanner for .evtx logs"
+
+s "STEALTH"
+t "proxychains"    "chain proxies for any tool"
+t "torsocks"       "route any command through Tor"
+t "macchanger"     "randomize MAC address"
+t "veracrypt"      "encrypted volumes"
+
+echo ""

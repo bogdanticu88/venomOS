@@ -1,8 +1,0 @@
-#!/bin/bash
-# Tools are installed at first boot via venom-setup, not at ISO build time.
-# This hook is intentionally minimal — only system-level Python packages needed
-# by the live environment itself.
-
-echo "[*] Configuring Python environment..."
-pip3 install --quiet --break-system-packages pipx 2>/dev/null || true
-echo "[+] Python environment ready."

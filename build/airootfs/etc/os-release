@@ -1,0 +1,11 @@
+NAME="VenomOS"
+VERSION="1.0"
+ID=venomos
+ID_LIKE=arch
+PRETTY_NAME="VenomOS 1.0"
+VERSION_ID="1.0"
+HOME_URL="https://github.com/bogdanticu88/venomOS"
+SUPPORT_URL="https://github.com/bogdanticu88/venomOS/issues"
+BUG_REPORT_URL="https://github.com/bogdanticu88/venomOS/issues"
+ANSI_COLOR="0;32"
+LOGO="venomos"
