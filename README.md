@@ -49,28 +49,64 @@ VenomOS (Arch base — CLI only, boots to TTY)
 
 - MAC address randomization on every boot
 - Tor as default gateway for OSINT/anonymous VMs
-- DNS-over-HTTPS only
-- RAM wipe on shutdown
+- DNS routed through dnscrypt-proxy (port 53, localhost)
+- systemd-resolved disabled and masked — no DNS stub leaks
+- RAM-only live environment, no writes to disk by default
 - No swap, no logs persisted by default
-- Timestomping tools built in
 
-## Tool Categories
+## Default Credentials
 
-| Category | Source |
-|----------|--------|
-| Recon & OSINT | BlackArch repo + venom-setup |
-| Offensive | BlackArch repo + venom-setup |
-| Malware Analysis | BlackArch repo + venom-setup |
-| Threat Intel | venom-setup (custom tools) |
-| Network | BlackArch repo |
-| Forensics | BlackArch repo |
+| User | Password |
+|------|----------|
+| root | venom |
+| venom | live |
+
+`venom` has passwordless sudo. Default shell is zsh. tmux starts automatically on login.
+
+## Services (auto-start on boot)
+
+| Service | Purpose |
+|---------|---------|
+| NetworkManager | network management |
+| tor | Tor daemon (SOCKS on 9050/9150, TransPort 9040) |
+| dnscrypt-proxy | encrypted DNS on 127.0.0.1:53 |
+| docker | container runtime |
+| sshd | SSH server |
+| venomos-dns-fix | one-shot: writes plain resolv.conf before dnscrypt-proxy starts |
+
+## Pre-installed Tools
+
+### Network & Traffic
+`nmap` `masscan` `wireshark-cli` `tcpdump` `socat` `ettercap` `bettercap` `mtr`
+
+### Wireless
+`aircrack-ng` `kismet` `wifite`
+
+### Web & OSINT
+`sqlmap` `nikto` `dirb` `wfuzz` `ffuf` `nuclei` `gobuster` `feroxbuster`
+`whatweb` `theharvester` `dnsenum`
+
+### Password & Credential
+`hashcat` `john` `hydra` `medusa` `crunch`
+
+### Exploitation
+`metasploit` `exploitdb`
+
+### Forensics
+`sleuthkit` `autopsy` `foremost` `scalpel` `testdisk` `dc3dd`
+
+### Reverse Engineering
+`radare2` `ghidra` `gdb` `pwndbg` `yara`
+
+### Anonymity & Routing
+`tor` `torsocks` `proxychains-ng` `openvpn` `wireguard-tools` `macchanger` `dnscrypt-proxy`
 
 ## Custom Tools
 
-Personal tooling cloned at first boot:
+Personal tooling cloned at first boot via `sudo venom-setup`:
 
 - **ApexHunter** — threat hunting playbooks
-- **SCARABEO** — malware analysis framework  
+- **SCARABEO** — malware analysis framework
 - **RogueDetect** — rogue device detection
 - **ERIS Intelligence** — threat intelligence
 - **AuthBridge** — authentication analysis
@@ -79,20 +115,36 @@ Personal tooling cloned at first boot:
 
 ## Build
 
+### Prerequisites
+
+- **Windows**: Docker Desktop with WSL2 backend enabled
+- **Linux**: Docker installed and running
+- 16 GB RAM recommended (8 GB minimum)
+- 30 GB free disk space (packages cache + ISO output)
+
+### Build steps
+
 ```bash
-# Requires Docker with WSL2 backend (Windows) or Linux host
 git clone https://github.com/bogdanticu88/venomOS
-cd venomOS/build
-bash run-build.sh
+cd venomOS
+bash build/run-build.sh
 ```
 
-ISO output: `venomOS/output/venomos-x86_64.iso`
+Run `bash build/run-build.sh` from inside WSL2 on Windows. On Linux, run it directly.
+
+The build runs inside a privileged Docker container. First run downloads ~3.5 GB of
+packages; subsequent builds use the cached `venomos-pacman-cache` Docker volume and
+complete in a fraction of the time.
+
+ISO output: `output/venomos-1.0-x86_64.iso` (~4.5 GB)
+
+Build log: `build.log` (project root)
 
 ## Persistent USB
 
 ```bash
-# Flash ISO
-dd if=output/venomos-x86_64.iso of=/dev/sdX bs=4M status=progress conv=fsync
+# Flash ISO to USB (replace sdX with your device)
+dd if=output/venomos-1.0-x86_64.iso of=/dev/sdX bs=4M status=progress conv=fsync
 
 # Create persistence partition (remaining space on USB)
 # Label it 'persistence' — VenomOS picks it up automatically on boot
