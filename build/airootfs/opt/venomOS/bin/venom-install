@@ -1,0 +1,58 @@
+#!/bin/bash
+# venom-install — installs VenomOS to a target disk
+# Usage: sudo venom-install [DEVICE]
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}[-] Must run as root: sudo venom-install${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}"
+echo " __   _____ _  _  ___  __  __  ___  ___ "
+echo " \\ \\ / / __| \\| |/ _ \\|  \\/  |/ _ \\/ __|"
+echo "  \\ V /| \`_|| .\` | (_) | |\\/| | (_) \\__ \\"
+echo "   \\_/ |___|_|\\_|\\___/|_|  |_|\\___/|___/"
+echo -e "${NC}"
+echo "  VenomOS Installer"
+echo ""
+
+TARGET="${1:-}"
+
+if [ -z "$TARGET" ]; then
+    echo "Available block devices:"
+    lsblk -o NAME,SIZE,TYPE,MOUNTPOINT | grep -v loop
+    echo ""
+    read -rp "Target device (e.g. /dev/sdb): " TARGET
+fi
+
+if [ ! -b "$TARGET" ]; then
+    echo -e "${RED}[-] Not a block device: $TARGET${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}[!] WARNING: All data on $TARGET will be destroyed.${NC}"
+read -rp "Type 'yes' to confirm: " CONFIRM
+[ "$CONFIRM" = "yes" ] || { echo "Aborted."; exit 1; }
+
+ISO=$(ls /run/archiso/airootfs/../../../*.iso 2>/dev/null | head -1 || true)
+if [ -z "$ISO" ]; then
+    # Try to find mounted ISO
+    ISO=$(findmnt -n -o SOURCE /run/archiso/bootmnt 2>/dev/null | head -1 || true)
+fi
+
+if [ -z "$ISO" ]; then
+    echo -e "${RED}[-] Cannot locate source ISO. Copy manually with 'dd'.${NC}"
+    exit 1
+fi
+
+echo "[*] Writing $ISO to $TARGET..."
+dd if="$ISO" of="$TARGET" bs=4M conv=fsync status=progress
+sync
+
+echo -e "${GREEN}[+] Installation complete. Remove the USB and boot from $TARGET.${NC}"

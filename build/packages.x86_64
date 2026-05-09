@@ -74,7 +74,6 @@ strace
 ltrace
 binutils
 hexedit
-xxd
 jq
 yq
 fzf
@@ -116,7 +115,6 @@ virt-manager
 apparmor
 ufw
 fail2ban
-aide
 rkhunter
 lynis
 
@@ -132,23 +130,18 @@ autopsy
 foremost
 scalpel
 testdisk
-photorec
 dc3dd
 ddrescue
 
 # ── Network analysis ─────────────────────────────────────────────────────────
 wireshark-cli
 tcpdump
-tshark
-netcat
-ncat
 socat
 ettercap
 bettercap
 aircrack-ng
 kismet
 masscan
-hping3
 mtr
 traceroute
 
@@ -161,6 +154,12 @@ dirb
 wfuzz
 ffuf
 nuclei
+gobuster
+feroxbuster
+whatweb
+theharvester
+dnsenum
+wifite
 
 # ── Password / credential ─────────────────────────────────────────────────────
 hashcat
